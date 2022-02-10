@@ -1,0 +1,37 @@
+{
+	"DATA_HEADERS":{
+		"1": "time_stamp",
+		"2": "r_coil_live",
+		"3": "duty_cycle",
+		"4": "vbat",
+		"5": "r_coil_targ",
+		"6": "r_coil_base",
+		"7": "target_temp",
+		"8": "tcr"
+	},
+
+	"CALCULATIONS":{
+		"9": ["power", 2, 3, 4]
+	},
+
+	"HEADERS_LABELS":{
+		"1": "Time (sec)",
+		"2": "Resistance (mΩ)",
+		"3": "Percent (%)",
+		"4": "Voltage (mV)",
+		"5": "Resistance (mΩ)",
+		"6": "Resistance (mΩ)",
+		"7": "Temperature (˚C)",
+		"8": "TCR (ppm/˚C)",
+		"9": "Power (W)"
+	},
+
+    	"PLOT_WINDOW_1":{
+           "title": "Test Results",
+           "x_data": [1],
+           "subplot1": [2, 5, 6],
+           "subplot2": [9],
+           "subplot3": [3],
+           "subplot4": [4]
+    	}
+}
