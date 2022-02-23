@@ -1,0 +1,42 @@
+{
+	"DATA_HEADERS":{
+		"1": "time_stamp",
+		"2": "oven_temp_state",
+		"3": "heating_state",
+		"4": "heater_suspend_bitfield",
+		"5": "live_thermistor_adc",
+		"6": "live_oven_temp",
+		"7": "target_thermistor_adc", 
+		"8": "target_oven_temp",
+		"9": "live_duty_cycle",
+		"10": "pid_law_output_duty_cycle",
+		"11": "pid_adc_error",
+		"12": "pid_adc_integral_error",
+		"13": "pid_adc_derivative_error"
+	},
+
+	"CALCULATIONS":{
+	},
+
+	"HEADERS_LABELS":{
+		"1": "Time (sec)",
+		"2": "oven temp state (0-5)",
+		"3": "heating state (0-7)",
+		"4": "heater suspend bitfield, 9 bits hex",
+		"5": "live thermistor adc reading",
+		"6": "live oven temp [ºC/10]",
+		"7": "target thermistor adc reading (0-1023)",
+		"8": "target oven temp [ºC/10]",
+		"9": "live heating duty cycle (0-100)",
+		"10": "pid law output duty cycle",
+		"11": "pid adc error (0-1023)",
+		"12": "pid adc integral of error",
+		"13": "pid adc derivative of error"
+	},
+
+    	"PLOT_WINDOW_1":{
+           "title": "Test Results",
+           "x_data": [1],
+           "subplot1": [6, 8]
+    	}
+}
