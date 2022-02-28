@@ -84,11 +84,14 @@ FRAME_DATA_PROCESSING_LAYOUT = [
 FRAME_HEATER_SETTINGS_LAYOUT = [
     [sg.Button('Master Streaming Toggle', key='gui_button_streaming_send',size = 22), sg.T('',size=(2,1)),sg.Button('Heater Data Toggle', key='gui_button_heater_data_send',size = 22)],
     [sg.Button('Battery Data Toggle', key='gui_button_battery_data_send',size = 22), sg.T('',size=(2,1)), sg.Button('Lip Sense Data Toggle', key='gui_button_lip_sense_data_send',size = 22)],
+    [sg.Button('Suspend Heating', key='gui_button_suspend_heating_send',size = 22), sg.T('',size=(2,1)), sg.Button('Resume Heating', key='gui_button_resume_heating_send',size = 22)],
+
   ]
 
 FRAME_POKE_LAYOUT = [
     [sg.Button('Enable CLI',key='gui_button_poke_command_send',font=GUI_FONT_MAIN, size=(12))],
 ]
+
 
 FRAME_CONSOLE_LAYOUT = [
     [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN, text_color = 'LightGreen', autoscroll=True,size=(100,10),reroute_cprint=True, write_only=True)],
@@ -306,6 +309,12 @@ class GUI(SerialPort):
             elif self.event == 'gui_button_lip_sense_data_send':
                     cp("Toggling Lip Sense Streaming")
                     self.send_msg('p')
+            elif self.event == 'gui_button_suspend_heating_send':
+                    cp("Suspending Heating")
+                    self.send_msg('g')
+            elif self.event == 'gui_button_resume_heating_send':
+                    cp("Resuming Heating")
+                    self.send_msg('f')
 
             # POKE THE PAX
             elif self.event == 'gui_button_poke_command_send':
