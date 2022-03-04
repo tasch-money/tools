@@ -1,0 +1,47 @@
+{
+	"DATA_HEADERS":{
+		"1": "time_stamp",
+		"2": "channel1",
+		"3": "channel1_avg",
+		"4": "channel2",
+		"5": "channel2_avg",
+		"6": "channel3",
+		"7": "channel3_avg",
+		"8": "channel4",
+		"9": "channel4_avg",
+		"10": "channel5",
+		"11": "channel5_avg",
+		"12": "channel6",
+		"13": "channel6_avg",
+		"14": "channel7",
+		"15": "channel7_avg",
+		"16": "channel8",
+		"17": "channel8_avg"
+	},
+
+	"HEADERS_LABELS":{
+		"1": "Time (sec)",
+		"2": "Temperature (˚C)",
+		"3": "Temperature (˚C)",
+		"4": "Temperature (˚C)",
+		"5": "Temperature (˚C)",
+		"6": "Temperature (˚C)",
+		"7": "Temperature (˚C)",
+		"8": "Temperature (˚C)",
+		"9": "Temperature (˚C)",
+		"10": "Temperature (˚C)",
+		"11": "Temperature (˚C)",
+		"12": "Temperature (˚C)",
+		"13": "Temperature (˚C)",
+		"14": "Temperature (˚C)",
+		"15": "Temperature (˚C)",
+		"16": "Temperature (˚C)",
+		"17": "Temperature (˚C)"
+	},
+
+    	"PLOT_WINDOW_1":{
+           "title": "Test Results",
+           "x_data": [1],
+           "subplot1": [2, 3, 16, 17]
+    	}
+}
