@@ -89,7 +89,11 @@ FRAME_HEATER_SETTINGS_LAYOUT = [
   ]
 
 FRAME_POKE_LAYOUT = [
-    [sg.Button('Enable CLI',key='gui_button_poke_command_send',font=GUI_FONT_MAIN, size=(12))],
+    [sg.Button('Enable CLI',key='gui_button_poke_command_send',font=GUI_FONT_MAIN, size=(20))],
+]
+
+FRAME_CYC_LAYOUT = [
+    [sg.Button('Toggle Cycle Mode',key='gui_button_cyc_command_send',font=GUI_FONT_MAIN, size=(20))],
 ]
 
 
@@ -100,7 +104,7 @@ FRAME_CONSOLE_LAYOUT = [
 GUI_LAYOUT = [  
     [sg.Text(PROJECT_TITLE, font=GUI_FONT_TITLE, key='gui_title')],
     [sg.Frame('CONNECTION', FRAME_COMMS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_serial'),sg.Frame('DATA PROCESSING', FRAME_DATA_PROCESSING_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_data_flow_ctrl')],
-    [sg.Frame('HEATER SETTINGS', FRAME_HEATER_SETTINGS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_heater_settings'),sg.Frame('POKE THE PAX',FRAME_POKE_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_button_poke_command_send')],
+    [sg.Frame('HEATER SETTINGS', FRAME_HEATER_SETTINGS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_heater_settings'),sg.Frame('POKE THE PAX',FRAME_POKE_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_button_poke_command_send'),sg.Frame('TOGGLE CYCLE MODE',FRAME_CYC_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_button_cyc_command_send')],
     [sg.Frame('CONSOLE', FRAME_CONSOLE_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_console')],
     [sg.Button('EXIT', key='gui_button_exit')],
 ]
@@ -320,6 +324,11 @@ class GUI(SerialPort):
             elif self.event == 'gui_button_poke_command_send':
                     cp("Poke")
                     self.send_msg('!!!O')
+
+            # POKE THE PAX
+            elif self.event == 'gui_button_cyc_command_send':
+                    cp("CYCLE MODE TOGGLED")
+                    self.send_msg('CYC')        
                     
 
             # ENDING
