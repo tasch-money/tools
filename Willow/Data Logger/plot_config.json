@@ -37,6 +37,8 @@
     	"PLOT_WINDOW_1":{
            "title": "Test Results",
            "x_data": [1],
-           "subplot1": [6, 8]
+           "subplot1": [6, 8],
+           "subplot2": [9],
+           "subplot3": [11, 12, 13]
     	}
 }

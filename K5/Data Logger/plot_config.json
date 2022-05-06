@@ -11,7 +11,9 @@
 	},
 
 	"CALCULATIONS":{
-		"9": ["power", 2, 3, 4]
+		"9": ["power", 2, 3, 4],
+		"10": ["current_peak"],
+		"11": ["current_avg"]
 	},
 
 	"HEADERS_LABELS":{
@@ -23,7 +25,9 @@
 		"6": "Resistance (mΩ)",
 		"7": "Temperature (˚C)",
 		"8": "TCR (ppm/˚C)",
-		"9": "Power (W)"
+		"9": "Power (W)",
+		"10": "Current (A)",
+		"11": "Current (A)"
 	},
 
     	"PLOT_WINDOW_1":{
@@ -32,6 +36,7 @@
            "subplot1": [2, 5, 6],
            "subplot2": [9],
            "subplot3": [3],
-           "subplot4": [4]
+           "subplot4": [4], 
+           "subplot5": [10, 11]
     	}
 }

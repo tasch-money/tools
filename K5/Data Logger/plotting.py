@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 matplotlib.use("TkAgg")
 
-LOGFILE_HEADER_SKIP = 4
-MAX_DUTY_TICKS = 666
+LOGFILE_HEADER_SKIP 			= 4
+MAX_DUTY_TICKS 					= 656
+PWM_HEATING_DUTY_CYCLE          = 0.775
+PWM_VBAT_LOADED_DUTY_CYCLE      = 0.006
 
 class PLOTTER:
 	def __init__(self):
@@ -141,18 +143,31 @@ class PLOTTER:
 
 	def run_df_calcs(self):
 		t_start  = self.df['time_stamp'][0]
+		t_diff = self.df['time_stamp'].diff()
 		self.df['time_stamp'] = (self.df['time_stamp'] - t_start) * 1e-3
 		self.df['duty_cycle'] = 100 * (self.df['duty_cycle'] / MAX_DUTY_TICKS)
 		if self.extra_calcs_flag:
 			for k,v in self.config["CALCULATIONS"].items():
 				if 'sum' in v[0]:
 					self.df[v[0]] = self.df[self.headers[v[1]-1]] + self.df[self.headers[v[2]-1]]
-				elif 'power' in v[0]:
+				if 'power' in v[0]:
 					R = self.df[self.headers[v[1]-1]] * 0.001
 					duty = self.df[self.headers[v[2]-1]] * 0.01
 					vbat = self.df[self.headers[v[3]-1]] * 0.001
-					self.df[v[0]] = ((vbat * vbat) / R) * duty
+					self.df[v[0]] = ((vbat * vbat) / R) * (duty * PWM_HEATING_DUTY_CYCLE + PWM_VBAT_LOADED_DUTY_CYCLE)
+				if 'current_peak' in v[0]:
+					R = self.df['r_coil_live']
+					V = self.df['vbat']
+					self.df['current_peak'] = V / (R - 0.035)
+				if 'current_avg' in v[0]:
+					R = self.df['r_coil_live']
+					V = self.df['vbat']
+					duty = self.df['duty_cycle'] * 0.01
+					self.df['current_avg'] = (V / (R - 0.035)) * (duty * PWM_HEATING_DUTY_CYCLE + PWM_VBAT_LOADED_DUTY_CYCLE)
 		self.df.loc[~np.isfinite(self.df['power']), 'power'] = 0
+		E_i = (self.df['power'] * t_diff * 1e-3)
+		self.df['energy'] = E_i.cumsum()
+		print('Energy: %.2f J' % self.df['energy'].max())
 
 	def run(self):
 		for k,v in self.config.items():
