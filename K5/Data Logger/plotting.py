@@ -6,7 +6,10 @@ import numpy as np
 matplotlib.use("TkAgg")
 
 LOGFILE_HEADER_SKIP = 4
-MAX_DUTY_TICKS = 666
+MAX_DUTY_TICKS = 656
+
+PWM_HEATING_DUTY_CYCLE = 0.875
+PWM_VBAT_LOADED_DUTY_CYCLE = 0.006
 
 class PLOTTER:
 	def __init__(self):
@@ -49,7 +52,7 @@ class PLOTTER:
 				if self.extra_calcs_flag:
 					for k,v in self.config["CALCULATIONS"].items():
 						loc = int(k) - 1
-						self.headers[loc] = v[0]
+						self.headers[loc] = v
 						self.hlabels[loc] = self.config["HEADERS_LABELS"][k]
 
 			except:
@@ -73,12 +76,13 @@ class PLOTTER:
 				self.puff_start_flag = False
 				self.puff_duration = []
 				for i in range(len(r_lines)):
-					temp_line = r_lines[i].split(' ')
+					temp_line = r_lines[i].split(',')
 					if 'setpt' in temp_line[0]:
+						temp_line = r_lines[i].split(' ')
 						self.puff_counter += 1
 						self.puff_start_flag = True
-						prev_line = r_lines[i - 1].split(' ')
-						if 'hm:' in prev_line[0]:
+						prev_line = r_lines[i - 1].split(',')
+						if '$' in prev_line[0]:
 							self.puff_duration.append(float(prev_line[1]) - self.puff_start_time)
 						if self.puff_counter >= 2:
 							new_zero_line = df_data_lines[-1]
@@ -96,9 +100,9 @@ class PLOTTER:
 						if 'tcr' in temp_line[15]:
 							self.tcr = float(temp_line[16].strip())
 
-					if temp_line[0] == 'hm:' and temp_line[1] != 'time':
+					if temp_line[0] == '$' and temp_line[1] != 'time':
 						try:
-							temp_line.pop(0) 	# Remove 'hm:'
+							temp_line.pop(0) 	# Remove '$'
 							temp_list = [float(j) for j in temp_line]
 							temp_list.append(self.r_targ)
 							temp_list.append(self.r_base)
@@ -145,13 +149,11 @@ class PLOTTER:
 		self.df['duty_cycle'] = 100 * (self.df['duty_cycle'] / MAX_DUTY_TICKS)
 		if self.extra_calcs_flag:
 			for k,v in self.config["CALCULATIONS"].items():
-				if 'sum' in v[0]:
-					self.df[v[0]] = self.df[self.headers[v[1]-1]] + self.df[self.headers[v[2]-1]]
-				elif 'power' in v[0]:
-					R = self.df[self.headers[v[1]-1]] * 0.001
-					duty = self.df[self.headers[v[2]-1]] * 0.01
-					vbat = self.df[self.headers[v[3]-1]] * 0.001
-					self.df[v[0]] = ((vbat * vbat) / R) * duty
+				if v == 'power':
+					R = self.df['r_coil_live'] * 0.001
+					duty = self.df['duty_cycle'] * 0.01
+					vbat = self.df['vbat'] * 0.001
+					self.df[v] = ((vbat * vbat) / R) * (duty * PWM_HEATING_DUTY_CYCLE + PWM_VBAT_LOADED_DUTY_CYCLE)
 		self.df.loc[~np.isfinite(self.df['power']), 'power'] = 0
 
 	def run(self):

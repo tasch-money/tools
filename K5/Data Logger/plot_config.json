@@ -11,7 +11,7 @@
 	},
 
 	"CALCULATIONS":{
-		"9": ["power", 2, 3, 4]
+		"9": "power"
 	},
 
 	"HEADERS_LABELS":{

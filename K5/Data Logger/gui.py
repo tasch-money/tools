@@ -220,7 +220,7 @@ class GUI(SerialPort):
     def parse_line(self, line):
         try:
             param = ''
-            if ('hm:' in line) or ('setpt' in line):
+            if ('$' in line) or ('setpt' in line):
                 cp(line)
                 if self.log_stat == 1:
                     fm.write_log(line)
@@ -294,11 +294,11 @@ class GUI(SerialPort):
             elif self.event == 'gui_button_refresh_port':
                 cp("Refreshing Serial Ports!")
                 self.window['gui_comms_port_list'].Update(values=list_serial_ports())
-            elif self.event == 'gui_initialize_dvc_message':
-                if self.e_val[self.event] == 'tcr':
-                    self.send_msg('heater tcr')
-                elif self.e_val[self.event] == 'temp':
-                    self.send_msg('heater temp')
+            # elif self.event == 'gui_initialize_dvc_message':
+            #     if self.e_val[self.event] == 'tcr':
+            #         self.send_msg('heater tcr')
+            #     elif self.e_val[self.event] == 'temp':
+            #         self.send_msg('heater temp')
 
             # DATA PROCESSING
             elif self.event == 'gui_process_data_file':
