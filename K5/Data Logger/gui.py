@@ -219,40 +219,43 @@ class GUI(SerialPort):
 
     def parse_line(self, line):
         try:
-            param = ''
-            if ('$' in line) or ('setpt' in line):
-                cp(line)
-                if self.log_stat == 1:
-                    fm.write_log(line)
-            elif 'tcr' in line:
-                msg = line.split(' ')
-                if msg[0] == 'tcr':
-                    param = msg[0]
-                    value = msg[1]
-                    cp('TCR = %sppm/˚C' % value)
-                    if self.initialize_flag:
-                        self.window.write_event_value('gui_initialize_dvc_message', 'temp')
-            elif 'temp' in line:
-                msg = line.split(' ')
-                if msg[0] == 'temp':
-                    temp_value = msg[1]
-                    for k,v in PETAL_LOOKUP.items():
-                        if temp_value in v:
-                            param = msg[0]
-                            value = k
-                            cp('Petal Setting = %d' % value)
-                            if self.initialize_flag:
-                                self.initialize_flag = False
-            elif 'stream' in line:
-                msg = line.split(' ')
-                if msg[0] == 'stream' and msg[1] == '1031':
-                    self.window.write_event_value('gui_initialize_dvc_message', 'tcr')
-            elif '??' in line:
-                self.resend_command_flag = True
+            cp(line)
+            if self.log_stat == 1:
+                fm.write_log(line)
+            # param = ''
+            # if ('$' in line) or ('setpt' in line):
+            #     cp(line)
+            #     if self.log_stat == 1:
+            #         fm.write_log(line)
+            # elif 'tcr' in line:
+            #     msg = line.split(' ')
+            #     if msg[0] == 'tcr':
+            #         param = msg[0]
+            #         value = msg[1]
+            #         cp('TCR = %sppm/˚C' % value)
+            #         if self.initialize_flag:
+            #             self.window.write_event_value('gui_initialize_dvc_message', 'temp')
+            # elif 'temp' in line:
+            #     msg = line.split(' ')
+            #     if msg[0] == 'temp':
+            #         temp_value = msg[1]
+            #         for k,v in PETAL_LOOKUP.items():
+            #             if temp_value in v:
+            #                 param = msg[0]
+            #                 value = k
+            #                 cp('Petal Setting = %d' % value)
+            #                 if self.initialize_flag:
+            #                     self.initialize_flag = False
+            # elif 'stream' in line:
+            #     msg = line.split(' ')
+            #     if msg[0] == 'stream' and msg[1] == '1031':
+            #         self.window.write_event_value('gui_initialize_dvc_message', 'tcr')
+            # elif '??' in line:
+            #     self.resend_command_flag = True
 
-            if param in PARSE_LINE_PARAM_UPDATE_LIST:
-                gui_param = 'gui_heater_{}'.format(param)
-                self.update_param(gui_param, value)
+            # if param in PARSE_LINE_PARAM_UPDATE_LIST:
+            #     gui_param = 'gui_heater_{}'.format(param)
+            #     self.update_param(gui_param, value)
         except:
             cp('ERROR: BAD DATA LINE!')
 

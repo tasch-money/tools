@@ -1,0 +1,27 @@
+{
+	"DATA_HEADERS":{
+		"1": "time_stamp",
+		"2": "error",
+		"3": "d_error",
+		"4": "error_sum",
+		"5": "p_desired",
+		"6": "r_live"
+	},
+
+	"HEADERS_LABELS":{
+		"1": "Time (sec)",
+		"2": "Control Params",
+		"3": "Control Params",
+		"4": "Control Params",
+		"5": "Power (mW/10)",
+		"6": "Resistance (mΩ/10)"
+	},
+
+    	"PLOT_WINDOW_1":{
+           "title": "Test Results",
+           "x_data": [1],
+           "subplot1": [2, 3, 4],
+           "subplot2": [5],
+           "subplot3": [6]
+    	}
+}

@@ -77,52 +77,53 @@ class PLOTTER:
 				self.puff_duration = []
 				for i in range(len(r_lines)):
 					temp_line = r_lines[i].split(',')
-					if 'setpt' in temp_line[0]:
-						temp_line = r_lines[i].split(' ')
-						self.puff_counter += 1
-						self.puff_start_flag = True
-						prev_line = r_lines[i - 1].split(',')
-						if '$' in prev_line[0]:
-							self.puff_duration.append(float(prev_line[1]) - self.puff_start_time)
-						if self.puff_counter >= 2:
-							new_zero_line = df_data_lines[-1]
-							new_zero_line[0] = float(new_zero_line[0]) + 8
-							new_zero_line[1] = self.r_base
-							new_zero_line[2] = 0
-							new_zero_line[3] = 0
-							df_data_lines.append(new_zero_line)
+					# if 'setpt' in temp_line[0]:
+					# 	temp_line = r_lines[i].split(' ')
+					# 	self.puff_counter += 1
+					# 	self.puff_start_flag = True
+					# 	prev_line = r_lines[i - 1].split(',')
+					# 	if '$' in prev_line[0]:
+					# 		self.puff_duration.append(float(prev_line[1]) - self.puff_start_time)
+					# 	if self.puff_counter >= 2:
+					# 		new_zero_line = df_data_lines[-1]
+					# 		new_zero_line[0] = float(new_zero_line[0]) + 8
+					# 		new_zero_line[1] = self.r_base
+					# 		new_zero_line[2] = 0
+					# 		new_zero_line[3] = 0
+					# 		df_data_lines.append(new_zero_line)
 
-						self.r_targ = float(temp_line[1])
-						if 'basel' in temp_line[2]:
-							self.r_base = float(temp_line[3])
-						if 'trgt' in temp_line[13]:
-							self.t_targ = float(temp_line[14])
-						if 'tcr' in temp_line[15]:
-							self.tcr = float(temp_line[16].strip())
+					# 	self.r_targ = float(temp_line[1])
+					# 	if 'basel' in temp_line[2]:
+					# 		self.r_base = float(temp_line[3])
+					# 	if 'trgt' in temp_line[13]:
+					# 		self.t_targ = float(temp_line[14])
+					# 	if 'tcr' in temp_line[15]:
+					# 		self.tcr = float(temp_line[16].strip())
 
-					if temp_line[0] == '$' and temp_line[1] != 'time':
+					if temp_line[0] == '$':
 						try:
 							temp_line.pop(0) 	# Remove '$'
 							temp_list = [float(j) for j in temp_line]
-							temp_list.append(self.r_targ)
-							temp_list.append(self.r_base)
-							temp_list.append(self.t_targ)
-							temp_list.append(self.tcr)
-							if self.puff_start_flag:
-								self.puff_start_flag = False
-								self.puff_start_time = float(temp_line[1])
+							df_data_lines.append(temp_list)
+							# temp_list.append(self.r_targ)
+							# temp_list.append(self.r_base)
+							# temp_list.append(self.t_targ)
+							# temp_list.append(self.tcr)
+							# if self.puff_start_flag:
+							# 	self.puff_start_flag = False
+							# 	self.puff_start_time = float(temp_line[1])
 								
-								if self.puff_counter >= 2:
-									new_zero_line = temp_list
-									new_zero_line[0] = float(temp_list[0]) - 8
-									new_zero_line[1] = self.r_base
-									new_zero_line[2] = 0
-									new_zero_line[3] = 0
-									df_data_lines.append(new_zero_line)
+							# 	if self.puff_counter >= 2:
+							# 		new_zero_line = temp_list
+							# 		new_zero_line[0] = float(temp_list[0]) - 8
+							# 		new_zero_line[1] = self.r_base
+							# 		new_zero_line[2] = 0
+							# 		new_zero_line[3] = 0
+							# 		df_data_lines.append(new_zero_line)
 
-								df_data_lines.append(temp_list)
-							else:
-								df_data_lines.append(temp_list)
+							# 	df_data_lines.append(temp_list)
+							# else:
+							# 	df_data_lines.append(temp_list)
 						except:
 							pass
 			else:
@@ -130,14 +131,14 @@ class PLOTTER:
 				rtn_val = False
 			f.close()
 			if rtn_val:
-				try:
-					self.df = pd.DataFrame(df_data_lines, columns=self.headers[:len(self.config["DATA_HEADERS"].keys())])
-					self.df = self.df.dropna()
-					self.run_df_calcs()
-					# print(self.df)
-				except:
-					print('Bad pandas import of file!')
-					rtn_val = False
+				# try:
+				self.df = pd.DataFrame(df_data_lines, columns=self.headers[:len(self.config["DATA_HEADERS"].keys())])
+				self.df = self.df.dropna()
+				self.run_df_calcs()
+				# print(self.df)
+				# except:
+					# print('Bad pandas import of file!')
+					# rtn_val = False
 		else:
 			print('Data file must be a LOG file!')
 			rtn_val = False
@@ -146,15 +147,23 @@ class PLOTTER:
 	def run_df_calcs(self):
 		t_start  = self.df['time_stamp'][0]
 		self.df['time_stamp'] = (self.df['time_stamp'] - t_start) * 1e-3
-		self.df['duty_cycle'] = 100 * (self.df['duty_cycle'] / MAX_DUTY_TICKS)
-		if self.extra_calcs_flag:
-			for k,v in self.config["CALCULATIONS"].items():
-				if v == 'power':
-					R = self.df['r_coil_live'] * 0.001
-					duty = self.df['duty_cycle'] * 0.01
-					vbat = self.df['vbat'] * 0.001
-					self.df[v] = ((vbat * vbat) / R) * (duty * PWM_HEATING_DUTY_CYCLE + PWM_VBAT_LOADED_DUTY_CYCLE)
-		self.df.loc[~np.isfinite(self.df['power']), 'power'] = 0
+		# self.df['tcr_temp'] = (((self.df['r_targ'] - self.df['r_base'])/self.df['r_base']) / 0.000415) + 29
+		# self.df['tcr_live'] = (((self.df['r_live'] - self.df['r_base'])/self.df['r_base']) / 0.000415) + 29
+		# self.df['tcr_temp_plus'] = self.df['tcr_temp'] + 5
+		# self.df['tcr_temp_minus'] = self.df['tcr_temp'] - 5
+		self.df['r_base_plus'] = self.df['r_base'] + 25
+		self.df['r_base_minus'] = self.df['r_base'] - 25
+		self.df['r_live_plus'] = self.df['r_live'] + 25
+		self.df['r_live_minus'] = self.df['r_live'] - 25
+		energy = self.df['p_live'] * self.df['time_stamp'].diff()
+		energy_total = energy.cumsum().max() * 1e-3
+		print('Energy = %.3fJ' % energy_total)
+		# self.df['r_live'] *= 0.1
+		# self.df['r_base'] *= 0.1
+		# self.df['r_targ'] *= 0.1
+		# self.df['p_desired'] *= 1e-3
+		# self.df['p_actual'] *= 1e-3
+		# self.df['duty'] = (self.df['duty'] / MAX_DUTY_TICKS) * 100
 
 	def run(self):
 		for k,v in self.config.items():
@@ -176,6 +185,14 @@ class PLOTTER:
 							ax.plot(x, y, label=self.headers[trace - 1])
 							ax.set_ylabel(self.hlabels[trace - 1])
 							ax.legend(loc='upper right')
+				# ax[2].plot(self.df['time_stamp'], self.df['tcr_temp'])
+				# ax[2].plot(self.df['time_stamp'], self.df['tcr_live'])
+				# ax[2].plot(self.df['time_stamp'], self.df['tcr_temp_plus'])
+				# ax[2].plot(self.df['time_stamp'], self.df['tcr_temp_minus'])
+				ax[0].plot(self.df['time_stamp'], self.df['r_base_plus'])
+				ax[0].plot(self.df['time_stamp'], self.df['r_base_minus'])
+				# ax[0].plot(self.df['time_stamp'], self.df['r_live_plus'])
+				# ax[0].plot(self.df['time_stamp'], self.df['r_live_minus'])
 				plt.xlabel(x_label)
 		plt.show()
 
