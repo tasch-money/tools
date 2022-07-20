@@ -146,7 +146,7 @@ GUI_LAYOUT = [
     [sg.Frame('DATA PROCESSING', FRAME_DATA_PROCESSING_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_data_flow_ctrl')],
     [sg.Frame('TEST SETTINGS', FRAME_TEST_SETTINGS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_test_settings')],
     [sg.Frame('CONSOLE', FRAME_CONSOLE_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_console')],
-    [sg.Button('EXIT', key='gui_button_exit'), sg.Button('START', key='gui_button_start')] #sg.Button('Print Reistance', key='gui_button_print_res')],
+    [sg.Button('EXIT', key='gui_button_exit'), sg.Button('START', key='gui_button_start'),sg.Button('STOP', key='gui_button_stop'),sg.Button('Print Reistance', key='gui_button_print_res')]
 ]
 
 class SerialPort:
@@ -464,61 +464,50 @@ class GUI(SerialPort):
             # SERIAL COMMS 0
             elif self.event == 'gui_comms_port_list':
                 self.port_new = self.window['gui_comms_port_list'].get()
+            
             elif self.event == 'gui_button_open_port':
                 if self.open_port(self.port_new):
+                    #self.connect_to_arduino()
+                    cp("Connected to arduino!")
                     SetLED(self.window, 'gui_status_comms','green','green')
-                    # self.enable_logging(1)
                     self.update_param('gui_text_comms_stat', 'OPEN')
-                    # self.send_msg('heater stream 1031')
+            
             elif self.event == 'gui_button_close_port':
                 if self.close_port():
                     SetLED(self.window, 'gui_status_comms','red','red')
-                    # self.enable_logging(0)
                     self.update_param('gui_text_comms_stat', 'CLOSED')
 
             elif self.event == 'gui_button_refresh_port':
                 cp("Refreshing Serial Ports!")
                 self.window['gui_comms_port_list'].Update(values=list_serial_ports())
-            # elif self.event == 'gui_initialize_dvc_message':
-            #     if self.e_val[self.event] == 'tcr':
-            #         self.send_msg('heater tcr')
-            #     elif self.e_val[self.event] == 'temp':
-            #         self.send_msg('heater temp')
-
+           
             # SERIAL COMMS 1 (furnace)
             elif self.event == 'gui_comms_port_list_1':
                 self.port_new = self.window['gui_comms_port_list_1'].get()
+            
             elif self.event == 'gui_button_open_port_1':
-                # if self.open_port(self.port_new):
                 self.connect_to_furnace()
-                ("Connected to furnace!")
+                cp("Connected to furnace!")
                 SetLED(self.window, 'gui_status_comms_1','green','green')
-                # self.enable_logging(1)
                 self.update_param('gui_text_comms_stat_1', 'OPEN')
-                # self.send_msg('heater stream 1031')
+
+            
             elif self.event == 'gui_button_close_port_1':
                 if self.close_port():
                     SetLED(self.window, 'gui_status_comms_1','red','red')
-                    # self.enable_logging(0)
                     self.update_param('gui_text_comms_stat_1', 'CLOSED')
 
             elif self.event == 'gui_button_refresh_port_1':
                 cp("Refreshing Serial Ports!")
                 self.window['gui_comms_port_list_1'].Update(values=list_serial_ports())
-            # elif self.event == 'gui_initialize_dvc_message':
-            #     if self.e_val[self.event] == 'tcr':
-            #         #self.send_msg('heater tcr')
-            #     elif self.e_val[self.event] == 'temp':
-            #         #self.send_msg('heater temp')
-
-            # elif self.event == 'gui_button_print_res':
-            #     cp(resistance_measurement);
+            
+            
 
             # DATA PROCESSING
             elif self.event == 'gui_process_data_file':
                 self.plot_file_path = self.window['gui_process_data_file'].get()
-            # elif self.event == 'gui_process_config_file':
-            #     self.config_file_path = self.window['gui_process_config_file'].get()
+            elif self.event == 'gui_process_config_file':
+                 self.config_file_path = self.window['gui_process_config_file'].get()
             elif self.event == 'gui_button_process_plot':
                 if self.plot_file_path != '':
                     if self.config_file_path != '':
@@ -535,23 +524,14 @@ class GUI(SerialPort):
                 else:
                     cp('Please choose a data and configuration file to plot!')
 
-            # HEATER CONTROL
-            elif self.event == 'gui_ckbox_heater_tcr_send':                
-                self.tx_check_box_dict['tcr'][0] ^= 1
-                if self.tx_check_box_dict['tcr'][0] == 1:
-                    cp("Confirmed to send TCR")
-                else:
-                    cp("Confirmed to NOT send TCR")
-            elif self.event == 'gui_ckbox_heater_temp_send':
-                self.tx_check_box_dict['temp'][0] ^= 1
-                if self.tx_check_box_dict['temp'][0] == 1:
-                    cp("Confirmed to send Target Temp")
-                else:
-                    cp("Confirmed to NOT send Target Temp")
+            # TEST SETTINGS
+            elif self.event == 'gui_button_print_res':
+                 cp(resistance_measurement);
+
             elif self.event == 'gui_button_test_settings_send':
                 global TEMPERATURES_TESTED_AT
                 global DUT
-                TEMPERATURES_TESTED_AT = [self.window['temp1'].Get(), self.window['temp2'].Get(), self.window['temp3'].Get(), self.window['temp4'].Get(), self.window['temp5'].Get()]
+                TEMPERATURES_TESTED_AT = [int(self.window['temp1'].Get()), int(self.window['temp2'].Get()), int(self.window['temp3'].Get()), int(self.window['temp4'].Get()), (self.window['temp5'].Get())]
                 cp(TEMPERATURES_TESTED_AT)
                 if self.is_port_open():
                     DUT = self.window['num_devices'].Get()
@@ -573,21 +553,15 @@ class GUI(SerialPort):
                     elif DUT == 8:
                         self.send_msg(cmd_eight)
 
-                    cp("stream")
-
-                    # if self.tx_check_box_dict['tcr'][0] == 1:
-                    #     #tcr = self.window['gui_heater_tcr'].get()
-                    #     #self.send_msg('heater tcr ' + tcr)
-                    # if self.tx_check_box_dict['temp'][0] == 1:
-                    #     new_petal = int(self.e_val['gui_heater_temp']
-                    #         )
-                    #     #self.send_msg('heater temp ' + PETAL_LOOKUP[new_petal])
-
+            # TEST CONTROL
             elif self.event == 'gui_button_start':
                 TEMPERATURES_TESTED_AT = [self.window['temp1'].Get(), self.window['temp2'].Get(), self.window['temp3'].Get(), self.window['temp4'].Get(), self.window['temp5'].Get()]
                 self.start_test()
 
-            # ENDING
+            elif self.event == 'gui_button_stop':
+                self.end_test()
+
+            # CLOSE WINDOW / TERMINATE PROGRAM
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
                 self.end_test()
                 self.close_port()
@@ -608,7 +582,7 @@ def thread_comms(thread_name, period, gui):
                     line = gui.RX()
                     gui.parse_line(line)
                     cp(line)
-                    resistance_measurement = line;
+                    resistance_measurement = line
 
                 if gui.resend_command_flag:
                     gui.resend_msg()
