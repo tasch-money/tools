@@ -1,0 +1,36 @@
+{
+	"DATA_HEADERS":{
+		"1": "time_stamp",
+		"2": "scale",
+		"3": "r_live",
+		"4": "r_base",
+		"5": "r_targ",
+		"6": "p_desired",
+		"7": "p_live",
+		"8": "seebeck",
+		"9": "seebeck_offset",
+		"10": "duty_cycle"
+	},
+
+	"HEADERS_LABELS":{
+		"1": "Time (sec)",
+		"2": "Scale",
+		"3": "Resistance (mΩ)",
+		"4": "Resistance (mΩ)",
+		"5": "Resistance (mΩ)",
+		"6": "Power (mW)",
+		"7": "Power (mW)",
+		"8": "ADC ticks",
+		"9": "ADC ticks",
+		"10": "ticks"
+	},
+
+    	"PLOT_WINDOW_1":{
+           "title": "Test Results",
+           "x_data": [1],
+           "subplot1": [3, 4, 5],
+           "subplot2": [6, 7],
+           "subplot3": [10],
+           "subplot4": [8, 9]
+    	}
+}
