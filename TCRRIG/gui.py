@@ -10,8 +10,8 @@ import playsound
 from file_manager import file_manager as fm
 from plotting import plotter
 
-PROJECT_TITLE = 'TCR Rig V1.0'
-PROJECT_COLOR_THEME = 'DarkRed'      # 'Coral'
+PROJECT_TITLE = 'TCR Rig V1.1'
+PROJECT_COLOR_THEME = 'DarkRed'
 
 GUI_TEXTSIZE_TITLE = 20
 GUI_TEXTSIZE_FRAME = 14
@@ -27,10 +27,8 @@ GUI_TEXTFONT_ALL = 'default'
 GUI_FONT_MAIN = (GUI_TEXTFONT_ALL, GUI_TEXTSIZE_SUBTEXT)
 GUI_FONT_FRAME = (GUI_TEXTFONT_ALL, GUI_TEXTSIZE_FRAME)
 GUI_FONT_TITLE = (GUI_TEXTFONT_ALL, GUI_TEXTSIZE_TITLE)
-
 GUI_BORDERWIDTH_FRAME = 10
 
-PARSE_LINE_PARAM_UPDATE_LIST = ['tcr', 'temp']
 cp = sg.cprint
 
 # Define overall GUI theme color scheme (See bottom of script for possible color themes)
@@ -40,19 +38,19 @@ sg.theme(PROJECT_COLOR_THEME)
 # PETAL_LOOKUP = {1: '270', 2: '320', 3: '370', 4: '420'}
 
 #Test Settings
-DUT = 8;
+DUT = 8
 FURNACE_TEMP_TOLERANCE = 10
-TEMPERATURES_TESTED_AT = [150, 200, 300, 400, 500];
-resistance_measurement = 0;
+TEMPERATURES_TESTED_AT = [150, 200, 300, 400, 500]
+resistance_measurement = 0
 
-cmd_one = "one";
-cmd_two = "two";
-cmd_three = "thr";
-cmd_four = "fou";
-cmd_five = "fiv";
-cmd_six = "six";
-cmd_seven = "sev";
-cmd_eight = "eig";
+cmd_one = "one"
+cmd_two = "two"
+cmd_three = "thr"
+cmd_four = "fou"
+cmd_five = "fiv"
+cmd_six = "six"
+cmd_seven = "sev"
+cmd_eight = "eig"
 cmd_list = [cmd_one, cmd_two, cmd_three, cmd_four, cmd_five, cmd_six, cmd_seven, cmd_eight]
 
 #CONSTANTS FOR FURNACE (Yamato FO200CR Muffle Furnace)
@@ -112,26 +110,18 @@ FRAME_COMMS_LAYOUT_2 = [
 
 FRAME_DATA_PROCESSING_LAYOUT = [
     [sg.Text('Data File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_data_file',size=(26,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_file_browser', size=(6,1), font=GUI_FONT_MAIN),sg.Button('PLOT',key='gui_button_process_plot',size=(4,1),font=GUI_FONT_MAIN)],
-    #[sg.T('', size=(1,1))],
     [sg.Text('Config File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_config_file',size=(26,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_config_browser', size=(6,1), font=GUI_FONT_MAIN)],
 ]
 
-#Temperature Array
-# TempArray = [[sg.Text('Temperatures Tested',size=(20,1),font=GUI_FONT_MAIN), sg.Spin(values=('100', '200', '300'), initial_value='100', size=(5,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(6,1),font=GUI_FONT_MAIN)],
-             # [sg.Text('Temperatures Tested',size=(20,1),font=GUI_FONT_MAIN), sg.Spin(values=('100', '200', '300'), initial_value='100', size=(5,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(6,1),font=GUI_FONT_MAIN)]]
-#Vis = [True, True, True, True, True]
-
 FRAME_TEST_SETTINGS_LAYOUT = [
-    #[sg.Text('TCR',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_heater_tcr',size=(12,1), font=(GUI_TEXTFONT_ALL, GUI_INPUTTEXT_SIZE, GUI_INPUTTEXT_STYLE), justification=GUI_INPUTTEXT_JUSTIFY),sg.Text('ppm/˚C',size=(6,1),font=GUI_FONT_MAIN),sg.Checkbox('',default=True,enable_events=True,key='gui_ckbox_heater_tcr_send')], 
     [sg.Text('Temperatures Tested',size=(20,1),font=GUI_FONT_MAIN)], 
-    [sg.Spin(key = 'temp1', values=[i for i in range(1, 1000)], initial_value='100', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN), 
-        sg.Spin(key = 'temp2', values=[i for i in range(1, 1000)], initial_value='200', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN),
-        sg.Spin(key = 'temp3', values=[i for i in range(1, 1000)], initial_value='300', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN),
-        sg.Spin(key = 'temp4', values=[i for i in range(1, 1000)], initial_value='400', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN),
-        sg.Spin(key = 'temp5', values=[i for i in range(1, 1000)], initial_value='500', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN)],
-    #[sg.Button('ADD TEMP', key='gui_button_add_temp')],
-    [sg.Text('Number of Devices',size=(17,1),font=GUI_FONT_MAIN),sg.Spin(values = [i for i in range(1, 9)], size=(3, 5), initial_value=8, key='num_devices', font=GUI_FONT_MAIN), 
-        sg.T('',size=(24,1)),sg.Button('SEND', key='gui_button_test_settings_send')]
+    [sg.Spin(key = 'temp1', values=[i for i in range(1, 1000)], initial_value='100', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN)], 
+    [sg.Spin(key = 'temp2', values=[i for i in range(1, 1000)], initial_value='200', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN)],
+    [sg.Spin(key = 'temp3', values=[i for i in range(1, 1000)], initial_value='300', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN)],
+    [sg.Spin(key = 'temp4', values=[i for i in range(1, 1000)], initial_value='400', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN)],
+    [sg.Spin(key = 'temp5', values=[i for i in range(1, 1000)], initial_value='500', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN)],
+    [sg.Text('Number of Devices',size=(17,1),font=GUI_FONT_MAIN),sg.Spin(values = [i for i in range(1, 9)], size=(3, 5), initial_value=8, key='num_devices', font=GUI_FONT_MAIN)], 
+    [sg.T('',size=(24,1)),sg.Button('SEND', key='gui_button_test_settings_send')]
 ]
 
 FRAME_CONSOLE_LAYOUT = [
@@ -160,7 +150,7 @@ class SerialPort:
         self.send_command_flag = False
         self.resend_command_flag = False
 
-    def open_port(self, port, baud=115200, time_out=0.1):
+    def open_port(self, port, baud, time_out=0.1):
         self.lock.acquire()
         if self.port_open:
             if self.port != port:
@@ -249,17 +239,13 @@ class GUI(SerialPort):
         SetLED(self.window, 'gui_status_comms','','red')
         SetLED(self.window, 'gui_status_comms_1','','red')
 
-        # Initialze all displayed parameters
-        #self.update_param('gui_heater_tcr'      ,   '-')
-
         self.plot_file_path = ''
         self.config_file_path = 'plot_config.json'
 
-        self.tx_check_box_dict = {'tcr':[1], 'temp':[1]}
         self.current_settings = {}        
         self.log_stat = 0
-        self.petal = 2
 
+        self.furnace_temp_counter = 0
         self.furnace_ser = None
         self.furnace_live_temp = 0
         self.furnace_start_dwell_time = 0
@@ -271,23 +257,23 @@ class GUI(SerialPort):
 
     def parse_line(self, line):
         # cp(line)
-        # try:
-        if self.furnace_connected:
-            self.furnace_live_temp = self.send_req(False, read_temp_header)
-            print(self.furnace_live_temp)
-            if ((self.furnace_live_temp < self.furnace_set_temp - FURNACE_TEMP_TOLERANCE) or (self.furnace_live_temp > self.furnace_set_temp + FURNACE_TEMP_TOLERANCE)):
-                if (time.time() - self.furnace_start_dwell_time >= FURNACE_DWELL_TIME):
-                    self.furnace_start_dwell_time = time.time()
-                    self.temps_tested_at_index += 1
-                    if self.temps_tested_at_index >= len(TEMPERATURES_TESTED_AT):
-                        self.end_test()
-                    else:
-                        self.furnace_set_temp = TEMPERATURES_TESTED_AT[self.temps_tested_at_index]
-                        self.set_furnace_temperature(self.furnace_set_temp)
-        if self.log_stat == 1:
-            fm.write_log(line)
-        # except:
-        #     cp('ERROR: BAD DATA LINE!')
+        try:
+            if self.furnace_connected:
+                self.furnace_live_temp = self.send_req(False, read_temp_header)
+                print(self.furnace_live_temp)
+                if ((self.furnace_live_temp < self.furnace_set_temp - FURNACE_TEMP_TOLERANCE) or (self.furnace_live_temp > self.furnace_set_temp + FURNACE_TEMP_TOLERANCE)):
+                    if (time.time() - self.furnace_start_dwell_time >= FURNACE_DWELL_TIME):
+                        self.furnace_start_dwell_time = time.time()
+                        self.temps_tested_at_index += 1
+                        if self.temps_tested_at_index >= len(TEMPERATURES_TESTED_AT):
+                            self.end_test()
+                        else:
+                            self.furnace_set_temp = TEMPERATURES_TESTED_AT[self.temps_tested_at_index]
+                            self.set_furnace_temperature(self.furnace_set_temp)
+            if self.log_stat == 1:
+                fm.write_log(line)
+        except:
+             cp('ERROR: BAD DATA LINE!')
 
     def start_test(self):
         self.enable_logging(1)
@@ -314,73 +300,12 @@ class GUI(SerialPort):
             cp('Closing logfile: %s' % logfile)
             self.log_stat = 0
 
-    def connect_to_furnace(self, max_tries = 5):
-        FURNACE_SERIAL_PORT = self.window['gui_comms_port_list_1'].get()
-        for i in range(max_tries):  
-            self.furnace_ser = serial.Serial(
-                port=FURNACE_SERIAL_PORT, 
-                baudrate=4800,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_TWO,
-                bytesize=serial.EIGHTBITS
-            )
-            if self.furnace_ser.isOpen():
-                self.furnace_connected = True
-                return
-        cp('Furnace cannot be connected with host. Please check connection.')
-        return None
-
     def set_furnace_temperature(self, temp):
+        # Send furnace your set temp
         self.send_req(True, set_temp_header, self.generate_hex_temp(temp))
         print("[Start] Furnace setting to {}".format(temp))
-
         # Run the furnace
         self.send_req(True, run_header, run_start)
-
-        # Check the current temperature until the furnace is done heating
-        self.furnace_live_temp = self.send_req(False, read_temp_header)
-
-        # # Check the temp on the thermocouple
-        # thermocouple_temp = read_thermocouple(arduino)    
-
-        # Check the temperature every 10 seconds until set temperature is reached
-        # while (current_temp < temp - tolerable_temp_error or current_temp > temp + tolerable_temp_error):
-        #     print("[Temp (C) = {}] - Waiting 10 seconds".format(current_temp))
-        #     time.sleep(10)
-
-        #     current_temp = self.send_req(ser, False, read_temp_header)
-
-        # # Once set temperature is achieved, wait 30 more minutes
-        # print("[Temp (C) = {}] - Temperature Achieved. Waiting 30 minutes".format(current_temp))
-        
-        #######################################################################################
-        # START DELAY FUNCTIONS, COMMENT OUT FOR DEBUG
-        #######################################################################################
-        # time.sleep(5*60)
-
-        # current_temp = self.send_req(ser, False, read_temp_header)
-        # print("[Temp (C) = {}] - 5 minutes have elapsed. Waiting 20 more minutes".format(current_temp))
-        # time.sleep(5*60)
-
-        # current_temp = self.send_req(ser, False, read_temp_header)
-        # print("[Temp (C) = {}] - 5 more minutes have elapsed. Waiting 3 more minutes".format(current_temp))     
-        # time.sleep(3*60)
-
-        # current_temp = self.send_req(ser, False, read_temp_header)
-        # print("[Temp (C) = {}] - Waiting 2 more minutes".format(current_temp))
-        # time.sleep(2*60)        
-        # #######################################################################################
-        # END DELAY FUNCTIONS, COMMENT OUT FOR DEBUG
-        #######################################################################################
-
-        # Check the temperature again after the 30 minutes
-        # current_temp = self.send_req(ser, False, read_temp_header)
-        # print("[Temp (C) = {}] - Temperature after 15 minutes.".format(current_temp))
-
-        # Complete
-        # print("Furnace Temperature (C) Setting Complete for {}".format(temp))
-
-        # self.send_req(ser, True, run_header, run_stop)
 
     def send_req(self, is_write, header, body=b''):
         action_type = write if is_write else read
@@ -433,23 +358,28 @@ class GUI(SerialPort):
         temp = bytes(list(req_msg) + [output])
         return bytearray(temp)     
 
-    def main_automation(self, furnace):
-        global DUT
-        global resistance_measurement
-        global tolerable_temp_error
-        global current_temp
-        time.sleep(2)
+    def get_furnace_temperature(self):
+        self.current_furnace_temp = self.send_req(self,False,read_temp_header)
+        return self.current_furnace_temp 
 
-        for temp in TEMPERATURES_TESTED_AT:
-            # cp("Ramping to: ", temp)
-            self.set_furnace_temperature(furnace, temp)
-            while (current_temp < temp - tolerable_temp_error or current_temp > temp + tolerable_temp_error):
-                for d in range(DUT):
-                    self.send_msg(cmd_list[d])
-                    time.sleep(2.3)
+    # def main_automation(self, furnace):
+    #     global DUT
+    #     global resistance_measurement
+    #     global tolerable_temp_error
+    #     global current_temp
+    #     time.sleep(2)
+
+    #     for temp in TEMPERATURES_TESTED_AT:
+    #         # cp("Ramping to: ", temp)
+    #         self.set_furnace_temperature(furnace, temp)
+    #         self.current_temp = get_furnace_temperature
+    #         while (current_temp < temp - tolerable_temp_error or current_temp > temp + tolerable_temp_error):
+    #             for d in range(DUT):
+    #                 self.send_msg(cmd_list[d])
+    #                 time.sleep(2.3)
 
 
-        cp('Main Automation Done!')
+    #     cp('Main Automation Done!')
     
     def event_loop(self):
         # Event Loop to process "events"
@@ -464,10 +394,8 @@ class GUI(SerialPort):
             # SERIAL COMMS 0
             elif self.event == 'gui_comms_port_list':
                 self.port_new = self.window['gui_comms_port_list'].get()
-            
             elif self.event == 'gui_button_open_port':
-                if self.open_port(self.port_new):
-                    #self.connect_to_arduino()
+                if self.open_port(self.port_new,115200):
                     cp("Connected to arduino!")
                     SetLED(self.window, 'gui_status_comms','green','green')
                     self.update_param('gui_text_comms_stat', 'OPEN')
@@ -486,10 +414,11 @@ class GUI(SerialPort):
                 self.port_new = self.window['gui_comms_port_list_1'].get()
             
             elif self.event == 'gui_button_open_port_1':
-                self.connect_to_furnace()
-                cp("Connected to furnace!")
-                SetLED(self.window, 'gui_status_comms_1','green','green')
-                self.update_param('gui_text_comms_stat_1', 'OPEN')
+                if self.open_port(self.port_new,4800):
+                    self.send_req(True, run_header, run_start)
+                    cp("Connected to furnace!")
+                    SetLED(self.window, 'gui_status_comms_1','green','green')
+                    self.update_param('gui_text_comms_stat_1', 'OPEN')
 
             
             elif self.event == 'gui_button_close_port_1':
@@ -526,7 +455,7 @@ class GUI(SerialPort):
 
             # TEST SETTINGS
             elif self.event == 'gui_button_print_res':
-                 cp(resistance_measurement);
+                 cp(self.resistance_measurement);
 
             elif self.event == 'gui_button_test_settings_send':
                 global TEMPERATURES_TESTED_AT
@@ -573,8 +502,9 @@ class GUI(SerialPort):
 
 
 #primary thread - checks arduino serial port and checks timer to change temperature (look foor library) (time.now - tstart)
+counter = 0
 def thread_comms(thread_name, period, gui):
-    global resistance_measurement
+    #global resistance_measurement
     while True:
         if gui.port_open:
             try:
@@ -582,13 +512,26 @@ def thread_comms(thread_name, period, gui):
                     line = gui.RX()
                     gui.parse_line(line)
                     cp(line)
-                    resistance_measurement = line
+                    #resistance_measurement = line
 
                 if gui.resend_command_flag:
                     gui.resend_msg()
+
+                # cp("iterate")
+                # furnace_temp = gui.get_furnace_temperature()    
+                # cp(furnace_temp)
+                
+
+                #if test_active_flag:
+                 #   if live_oven_temp >= temps_tested_at_index[index]
+
+                    #check if oventemp is at temp
+                    #advance temp to next temp    
             except:
                 pass
+        
         sleep(period * 0.001)
+
         # window.write_event_value(thread_name, f'count = {i}')
 
 gui = GUI(PROJECT_TITLE, GUI_LAYOUT)
