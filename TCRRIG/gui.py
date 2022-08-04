@@ -9,7 +9,7 @@ import PySimpleGUI as sg
 from file_manager import file_manager as fm
 from plotting import plotter
 
-PROJECT_TITLE = 'TCR Rig V1.0'
+PROJECT_TITLE = 'TCR Rig V1.1'
 PROJECT_COLOR_THEME = 'Black'      # 'Coral'
 
 GUI_TEXTSIZE_TITLE = 20
