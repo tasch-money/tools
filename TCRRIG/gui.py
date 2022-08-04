@@ -10,7 +10,7 @@ from file_manager import file_manager as fm
 from plotting import plotter
 
 PROJECT_TITLE = 'TCR Rig V1.0'
-PROJECT_COLOR_THEME = 'DarkRed'      # 'Coral'
+PROJECT_COLOR_THEME = 'Black'      # 'Coral'
 
 GUI_TEXTSIZE_TITLE = 20
 GUI_TEXTSIZE_FRAME = 14
@@ -29,19 +29,15 @@ GUI_FONT_TITLE = (GUI_TEXTFONT_ALL, GUI_TEXTSIZE_TITLE)
 
 GUI_BORDERWIDTH_FRAME = 10
 
-PARSE_LINE_PARAM_UPDATE_LIST = ['tcr', 'temp']
 cp = sg.cprint
 
 # Define overall GUI theme color scheme (See bottom of script for possible color themes)
-sg.theme('DarkAmber')
 sg.theme(PROJECT_COLOR_THEME)
 
-# PETAL_LOOKUP = {1: '270', 2: '320', 3: '370', 4: '420'}
-
-#Test Settings
+#TEST SETTING GLOBALS
 DUT = 8
-FURNACE_TEMP_TOLERANCE = 10
-FURNACE_DWELL_TIME = 10
+FURNACE_TEMP_TOLERANCE = 1
+FURNACE_DWELL_TIME = 600
 TEMPERATURES_TESTED_AT = [150, 200, 300, 400, 500]
 resistance_measurement = 0
 
@@ -67,7 +63,7 @@ run_header = b'\x52\x55\x4e'        # Identifier: RUN
 run_start = b'\x30\x30\x30\x30\x31' # (RUN) Start = 0001
 run_stop = b'\x30\x30\x30\x30\x30'  # (RUN) Stop = 0000
 
-# Global Functions
+# GLOBAL FUNCTIONS
 def LEDIndicator(key=None, radius=15):
     return sg.Graph(canvas_size=(radius, radius),
              graph_bottom_left=(-radius, -radius),
@@ -101,37 +97,30 @@ def list_serial_ports():
     return result
 
 FRAME_COMMS_LAYOUT = [
-    [sg.Text('Serial Port:',size=(8,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=28, readonly=True, enable_events=True, key='gui_comms_port_list'),sg.Button('OPEN', key='gui_button_open_port'),sg.Button('CLOSE', key='gui_button_close_port')],
-    [sg.Text('Status:',size=(8,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms',radius=14),sg.T('',size=(8,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat'),sg.T('',size=(20,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port')],
+    [sg.Text('Serial Port:',size=(10,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=55, readonly=True, enable_events=True, key='gui_comms_port_list'),sg.Button('OPEN', key='gui_button_open_port'),sg.Button('CLOSE', key='gui_button_close_port')],
+    [sg.Text('Status:',size=(10,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms',radius=14),sg.T('',size=(10,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat'),sg.T('',size=(57,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port')],
 ]
 
 FRAME_COMMS_LAYOUT_2 = [
-    [sg.Text('Serial Port:',size=(8,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=28, readonly=True, enable_events=True, key='gui_comms_port_list_1'),sg.Button('OPEN', key='gui_button_open_port_1'),sg.Button('CLOSE', key='gui_button_close_port_1')],
-    [sg.Text('Status:',size=(8,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms_1',radius=14),sg.T('',size=(8,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat_1'),sg.T('',size=(20,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port_1')],
+    [sg.Text('Serial Port:',size=(10,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=55, readonly=True, enable_events=True, key='gui_comms_port_list_1'),sg.Button('OPEN', key='gui_button_open_port_1'),sg.Button('CLOSE', key='gui_button_close_port_1')],
+    [sg.Text('Status:',size=(10,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms_1',radius=14),sg.T('',size=(10,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat_1'),sg.T('',size=(57,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port_1')],
 ]
 
 FRAME_DATA_PROCESSING_LAYOUT = [
-    [sg.Text('Data File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_data_file',size=(26,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_file_browser', size=(6,1), font=GUI_FONT_MAIN),sg.Button('PLOT',key='gui_button_process_plot',size=(4,1),font=GUI_FONT_MAIN)],
+    [sg.Text('Data File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_data_file',size=(52,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_file_browser', size=(10,1), font=GUI_FONT_MAIN),sg.Button('Plot',key='gui_button_process_plot',size=(4,1),font=GUI_FONT_MAIN)],
     #[sg.T('', size=(1,1))],
-    [sg.Text('Config File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_config_file',size=(26,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_config_browser', size=(6,1), font=GUI_FONT_MAIN)],
+    [sg.Text('Config File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_config_file',size=(52,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_config_browser', size=(10,1), font=GUI_FONT_MAIN)],
 ]
 
 FRAME_TEST_SETTINGS_LAYOUT = [
     #[sg.Text('TCR',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_heater_tcr',size=(12,1), font=(GUI_TEXTFONT_ALL, GUI_INPUTTEXT_SIZE, GUI_INPUTTEXT_STYLE), justification=GUI_INPUTTEXT_JUSTIFY),sg.Text('ppm/˚C',size=(6,1),font=GUI_FONT_MAIN),sg.Checkbox('',default=True,enable_events=True,key='gui_ckbox_heater_tcr_send')], 
     [sg.Text('Temperatures Tested',size=(20,1),font=GUI_FONT_MAIN)], 
-    [sg.Spin(key = 'temp1', values=[i for i in range(1, 1000)], initial_value='100', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN), 
-        sg.Spin(key = 'temp2', values=[i for i in range(1, 1000)], initial_value='200', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN),
-        sg.Spin(key = 'temp3', values=[i for i in range(1, 1000)], initial_value='300', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN),
-        sg.Spin(key = 'temp4', values=[i for i in range(1, 1000)], initial_value='400', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN),
-        sg.Spin(key = 'temp5', values=[i for i in range(1, 1000)], initial_value='500', size=(4,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN),
-        sg.Spin(key = 'dwell time', values=[i for i in range(1, 100000)], initial_value='6000', size=(4,8), font=GUI_FONT_MAIN), sg.Text('Dwell Time (s)',size=(3,1),font=GUI_FONT_MAIN)],
-    #[sg.Button('ADD TEMP', key='gui_button_add_temp')],
-    [sg.Text('Number of Devices',size=(17,1),font=GUI_FONT_MAIN),sg.Spin(values = [i for i in range(1, 9)], size=(3, 5), initial_value=8, key='num_devices', font=GUI_FONT_MAIN), 
-        sg.T('',size=(24,1)),sg.Button('SEND', key='gui_button_test_settings_send')]
+    [sg.Spin(key = 'temp1', values=[i for i in range(1, 1000)], initial_value='100', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN), sg.Spin(key = 'temp2', values=[i for i in range(1, 1000)], initial_value='200', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp3', values=[i for i in range(1, 1000)], initial_value='300', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp4', values=[i for i in range(1, 1000)], initial_value='400', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp5', values=[i for i in range(1, 1000)], initial_value='500', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN)],
+    [sg.Text('Number of Devices',size=(14,1),font=GUI_FONT_MAIN),sg.Spin(values = [i for i in range(1, 9)], size=(3, 5), initial_value=8, key='num_devices', font=GUI_FONT_MAIN), sg.Text('Dwell Time (s)',size=(10,1),font=GUI_FONT_MAIN),sg.Spin(key = 'dwell time', values=[i for i in range(1, 100000)], initial_value='6000', size=(7,5), font=GUI_FONT_MAIN), sg.T('',size=(1,1)), sg.Button('SEND', key='gui_button_test_settings_send')]
 ]
 
 FRAME_CONSOLE_LAYOUT = [
-    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,autoscroll=True,size=(80, 12),reroute_cprint=True, write_only=True)],
+    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,text_color = 'LightGreen', autoscroll=True, size=(80, 12),reroute_cprint=True, write_only=True)],
 ]
 
 #Main GUI Layout
@@ -245,16 +234,11 @@ class GUI(SerialPort):
         SetLED(self.window, 'gui_status_comms','','red')
         SetLED(self.window, 'gui_status_comms_1','','red')
 
-        # Initialze all displayed parameters
-        #self.update_param('gui_heater_tcr'      ,   '-')
-
         self.plot_file_path = ''
         self.config_file_path = 'plot_config.json'
 
-        self.tx_check_box_dict = {'tcr':[1], 'temp':[1]}
         self.current_settings = {}        
         self.log_stat = 0
-        self.petal = 2
 
         self.dwell_flag = False
 
@@ -276,6 +260,7 @@ class GUI(SerialPort):
         self.enable_logging(1)
         self.temps_tested_at_index = 0
         self.furnace_set_temp = TEMPERATURES_TESTED_AT[self.temps_tested_at_index]
+        cp("Dwell time at temperature setpoint:",FURNACE_DWELL_TIME)
         self.set_furnace_temperature(self.furnace_set_temp)
         self.start_test_flag = 1
 
@@ -290,7 +275,12 @@ class GUI(SerialPort):
         cp("The test has finished.")
 
     def check_temp_and_check_dwell(self):
+        #THIS FUNCTION IS CALLED ONCE PER LOOP
         self.furnace_live_temp = self.send_req(False, read_temp_header)
+
+
+        #Debounce after three successful temps
+        #Add ramp down?
 
         #IF FURNACE IS AT TEMP, start dwell
         if(self.dwell_flag==False):
@@ -298,6 +288,7 @@ class GUI(SerialPort):
                 #Take timestamp for start of dwell session
                 self.furnace_start_dwell_time = time.time()
                 self.dwell_flag = True
+                cp("DWELLING")
 
         #IF DWELL TIME HAS BEEN REACHED, start ramp to next temp
         if(self.dwell_flag == True):
@@ -405,9 +396,6 @@ class GUI(SerialPort):
         temp = bytes(list(req_msg) + [output])
         return bytearray(temp)     
     
-         
-
-
     def event_loop(self):
         # Event Loop to process "events"
         while True:
@@ -501,6 +489,7 @@ class GUI(SerialPort):
             # TEST CONTROL
             elif self.event == 'gui_button_start':
                 TEMPERATURES_TESTED_AT = [self.window['temp1'].Get(), self.window['temp2'].Get(), self.window['temp3'].Get(), self.window['temp4'].Get(), self.window['temp5'].Get()]
+                FURNACE_DWELL_TIME = [int(self.window['dwell time'].Get())]
                 self.start_test()
 
             elif self.event == 'gui_button_stop':
@@ -527,7 +516,8 @@ def thread_comms(thread_name, period, gui):
                     line = gui.RX()
                     thread_furnace_temp = gui.get_furnace_temperature()
 
-                    gui.parse_line(line + " Temp: " + str(thread_furnace_temp))
+                    #get timestamp and add that to gui.parse_line
+                    gui.parse_line(line + "," + str(thread_furnace_temp))
 
                     if gui.start_test_flag == 1:
                         gui.check_temp_and_check_dwell()

@@ -16,6 +16,8 @@ class PLOTTER:
 		self.num_data_headers = 0
 		self.extra_calcs_flag = False
 
+		self.sample_time = 4
+
 		self.r_targ = 0
 		self.r_base = 0
 		self.t_targ = 0
@@ -64,95 +66,60 @@ class PLOTTER:
 			r_lines = f.readlines()
 			if len(r_lines) > 10:
 				df_data_lines = []
-				self.r_targ = 0
-				self.r_base = 0
-				self.t_targ = 0
-				self.tcr = 0
-				self.puff_start_time = 0
-				self.puff_counter = 0
-				self.puff_start_flag = False
-				self.puff_duration = []
+				
+				# self.dut1_r = 0
+				# self.dut2_r = 0
+				# self.dut3_r = 0
+				# self.dut4_r = 0
+				# self.dut5_r = 0
+				# self.dut6_r = 0
+				# self.dut7_r = 0
+				# self.dut8_r = 0
+				# self.furnace_temp = 0
+
 				for i in range(len(r_lines)):
-					temp_line = r_lines[i].split(' ')
-					if 'setpt' in temp_line[0]:
-						self.puff_counter += 1
-						self.puff_start_flag = True
-						prev_line = r_lines[i - 1].split(' ')
-						if 'hm:' in prev_line[0]:
-							self.puff_duration.append(float(prev_line[1]) - self.puff_start_time)
-						if self.puff_counter >= 2:
-							new_zero_line = df_data_lines[-1]
-							new_zero_line[0] = float(new_zero_line[0]) + 8
-							new_zero_line[1] = self.r_base
-							new_zero_line[2] = 0
-							new_zero_line[3] = 0
-							df_data_lines.append(new_zero_line)
-
-						self.r_targ = float(temp_line[1])
-						if 'basel' in temp_line[2]:
-							self.r_base = float(temp_line[3])
-						if 'trgt' in temp_line[13]:
-							self.t_targ = float(temp_line[14])
-						if 'tcr' in temp_line[15]:
-							self.tcr = float(temp_line[16].strip())
-
-					if temp_line[0] == 'hm:' and temp_line[1] != 'time':
-						try:
-							temp_line.pop(0) 	# Remove 'hm:'
-							temp_list = [float(j) for j in temp_line]
-							temp_list.append(self.r_targ)
-							temp_list.append(self.r_base)
-							temp_list.append(self.t_targ)
-							temp_list.append(self.tcr)
-							if self.puff_start_flag:
-								self.puff_start_flag = False
-								self.puff_start_time = float(temp_line[1])
-								
-								if self.puff_counter >= 2:
-									new_zero_line = temp_list
-									new_zero_line[0] = float(temp_list[0]) - 8
-									new_zero_line[1] = self.r_base
-									new_zero_line[2] = 0
-									new_zero_line[3] = 0
-									df_data_lines.append(new_zero_line)
-
-								df_data_lines.append(temp_list)
-							else:
-								df_data_lines.append(temp_list)
-						except:
-							pass
+					temp_line = r_lines[i].split(',')
+					print(temp_line)
+					if len(temp_line) == 9:
+						temp_list = [float(j) for j in temp_line]
+							
+						df_data_lines.append(temp_list)
+						
 			else:
 				print('Data file is empty!')
 				rtn_val = False
 			f.close()
 			if rtn_val:
-				try:
-					self.df = pd.DataFrame(df_data_lines, columns=self.headers[:len(self.config["DATA_HEADERS"].keys())])
-					self.df = self.df.dropna()
-					self.run_df_calcs()
-					# print(self.df)
-				except:
-					print('Bad pandas import of file!')
-					rtn_val = False
+				#try:
+				self.df = pd.DataFrame(df_data_lines, columns=self.headers[:len(self.config["DATA_HEADERS"].keys())])
+				self.df = self.df.dropna()
+				self.df['time_stamp'] = range(0, len(self.df))
+				self.df['time_stamp'] = self.sample_time * self.df['time_stamp']
+				print(self.df)
+				#self.run_df_calcs()
+				#print(self.df)
+				# except:
+				# 	print('Bad pandas import of file!')
+				# 	rtn_val = False
 		else:
 			print('Data file must be a LOG file!')
 			rtn_val = False
 		return rtn_val
 
-	def run_df_calcs(self):
-		t_start  = self.df['time_stamp'][0]
-		self.df['time_stamp'] = (self.df['time_stamp'] - t_start) * 1e-3
-		self.df['duty_cycle'] = 100 * (self.df['duty_cycle'] / MAX_DUTY_TICKS)
-		if self.extra_calcs_flag:
-			for k,v in self.config["CALCULATIONS"].items():
-				if 'sum' in v[0]:
-					self.df[v[0]] = self.df[self.headers[v[1]-1]] + self.df[self.headers[v[2]-1]]
-				elif 'power' in v[0]:
-					R = self.df[self.headers[v[1]-1]] * 0.001
-					duty = self.df[self.headers[v[2]-1]] * 0.01
-					vbat = self.df[self.headers[v[3]-1]] * 0.001
-					self.df[v[0]] = ((vbat * vbat) / R) * duty
-		self.df.loc[~np.isfinite(self.df['power']), 'power'] = 0
+	#def run_df_calcs(self):
+		# t_start  = self.df['time_stamp'][0]
+		# self.df['time_stamp'] = (self.df['time_stamp'] - t_start) * 1e-3
+		# self.df['duty_cycle'] = 100 * (self.df['duty_cycle'] / MAX_DUTY_TICKS)
+		# if self.extra_calcs_flag:
+		# 	for k,v in self.config["CALCULATIONS"].items():
+		# 		if 'sum' in v[0]:
+		# 			self.df[v[0]] = self.df[self.headers[v[1]-1]] + self.df[self.headers[v[2]-1]]
+		# 		elif 'power' in v[0]:
+		# 			R = self.df[self.headers[v[1]-1]] * 0.001
+		# 			duty = self.df[self.headers[v[2]-1]] * 0.01
+		# 			vbat = self.df[self.headers[v[3]-1]] * 0.001
+		# 			self.df[v[0]] = ((vbat * vbat) / R) * duty
+		# self.df.loc[~np.isfinite(self.df['power']), 'power'] = 0
 
 	def run(self):
 		for k,v in self.config.items():
@@ -161,8 +128,8 @@ class PLOTTER:
 				fig, ax = plt.subplots(num_sub_plots, sharex=True)
 				fig.suptitle(v['title'] + " - TCR = %dppm/˚C" % self.tcr)
 				for i in range(num_sub_plots):
-					x = self.df[self.headers[v['x_data'][0] - 1]]
-					x_label = self.hlabels[v['x_data'][0] - 1]
+					x = self.df['time_stamp']
+					x_label = 'Time (s)'
 					num_traces = len(v['subplot%d' % (i+1)])
 					for trace in v['subplot%d' % (i+1)]:
 						y = self.df[self.headers[trace - 1]]
