@@ -221,7 +221,8 @@ class GUI(SerialPort):
         try:
             cp(line)
             if self.log_stat == 1:
-                fm.write_log(line)
+                if ('$' in line) :
+                    fm.write_log(line)
             # param = ''
             # if ('$' in line) or ('setpt' in line):
             #     cp(line)

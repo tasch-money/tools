@@ -9,7 +9,8 @@
 		"7": "p_live",
 		"8": "seebeck",
 		"9": "seebeck_offset",
-		"10": "duty_cycle"
+		"10": "duty_cycle",
+		"11": "pod_condition"
 	},
 
 	"HEADERS_LABELS":{
@@ -22,7 +23,8 @@
 		"7": "Power (mW)",
 		"8": "ADC ticks",
 		"9": "ADC ticks",
-		"10": "ticks"
+		"10": "ticks",
+		"11": "Pod State"
 	},
 
     	"PLOT_WINDOW_1":{
@@ -30,7 +32,7 @@
            "x_data": [1],
            "subplot1": [3, 4, 5],
            "subplot2": [6, 7],
-           "subplot3": [10],
-           "subplot4": [8, 9]
+           "subplot3": [8, 9],
+           "subplot4": [11]
     	}
 }

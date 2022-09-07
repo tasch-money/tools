@@ -151,19 +151,29 @@ class PLOTTER:
 		# self.df['tcr_live'] = (((self.df['r_live'] - self.df['r_base'])/self.df['r_base']) / 0.000415) + 29
 		# self.df['tcr_temp_plus'] = self.df['tcr_temp'] + 5
 		# self.df['tcr_temp_minus'] = self.df['tcr_temp'] - 5
-		self.df['r_base_plus'] = self.df['r_base'] + 25
-		self.df['r_base_minus'] = self.df['r_base'] - 25
-		self.df['r_live_plus'] = self.df['r_live'] + 25
-		self.df['r_live_minus'] = self.df['r_live'] - 25
-		energy = self.df['p_live'] * self.df['time_stamp'].diff()
-		energy_total = energy.cumsum().max() * 1e-3
-		print('Energy = %.3fJ' % energy_total)
+		# self.df['r_base_plus'] = self.df['r_base'] + 25
+		# self.df['r_base_minus'] = self.df['r_base'] - 25
+		# self.df['r_live_plus'] = self.df['r_live'] + 25
+		# self.df['r_live_minus'] = self.df['r_live'] - 25
+		# energy = self.df['p_live'] * self.df['time_stamp'].diff()
+		# energy_total = energy.cumsum().max() * 1e-3
+		# print('Energy = %.3fJ' % energy_total)
 		# self.df['r_live'] *= 0.1
 		# self.df['r_base'] *= 0.1
 		# self.df['r_targ'] *= 0.1
 		# self.df['p_desired'] *= 1e-3
 		# self.df['p_actual'] *= 1e-3
 		# self.df['duty'] = (self.df['duty'] / MAX_DUTY_TICKS) * 100
+		# self.df['fixed_offset_plus'] = 300
+		# self.df['fixed_offset_minus'] = -300
+		# self.df['fixed_offset_plus1'] = 300
+		# self.df['fixed_offset_minus1'] = -300
+
+		# filepath = '/Users/matt/Documents/Git/tools/K5/Data Logger/models/Petal_4_EMPTYPOD_scaled_Puff_10.csv'
+		# temp = self.df.loc[self.df['sync_signal'] == 1]
+		# header = ['time_stamp', 'r_ratio']
+		# temp.to_csv(filepath, columns=header)
+		# print(temp['r_ratio'])
 
 	def run(self):
 		for k,v in self.config.items():
@@ -189,10 +199,14 @@ class PLOTTER:
 				# ax[2].plot(self.df['time_stamp'], self.df['tcr_live'])
 				# ax[2].plot(self.df['time_stamp'], self.df['tcr_temp_plus'])
 				# ax[2].plot(self.df['time_stamp'], self.df['tcr_temp_minus'])
-				ax[0].plot(self.df['time_stamp'], self.df['r_base_plus'])
-				ax[0].plot(self.df['time_stamp'], self.df['r_base_minus'])
+				# ax[0].plot(self.df['time_stamp'], self.df['r_base_plus'])
+				# ax[0].plot(self.df['time_stamp'], self.df['r_base_minus'])
 				# ax[0].plot(self.df['time_stamp'], self.df['r_live_plus'])
 				# ax[0].plot(self.df['time_stamp'], self.df['r_live_minus'])
+				# ax[2].plot(self.df['time_stamp'],self.df['fixed_offset_plus'])
+				# ax[2].plot(self.df['time_stamp'],self.df['fixed_offset_minus'])
+				# ax[3].plot(self.df['time_stamp'],self.df['fixed_offset_plus1'])
+				# ax[3].plot(self.df['time_stamp'],self.df['fixed_offset_minus1'])
 				plt.xlabel(x_label)
 		plt.show()
 
