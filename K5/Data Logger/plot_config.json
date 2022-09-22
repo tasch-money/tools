@@ -1,36 +1,40 @@
 {
 	"DATA_HEADERS":{
 		"1": "time_stamp",
-		"2": "scale",
-		"3": "r_live",
-		"4": "r_base",
-		"5": "r_targ",
-		"6": "r_fast",
-		"7": "r_model",
-		"8": "r_ratio",
-		"9": "diff",
-		"10": "pod_condition"
+		"2": "heater_state",
+		"3": "pod_condition",
+		"4": "r_live",
+		"5": "r_base",
+		"6": "r_targ",
+		"7": "r_fast",
+		"8": "r_diff",
+		"9": "r_diff_avg",
+		"10": "seebeck_offset",
+		"11": "seebeck_live",
+		"12": "seebeck_previous"
 	},
 
 	"HEADERS_LABELS":{
 		"1": "Time (sec)",
-		"2": "Scale",
-		"3": "Resistance (mΩ)",
-		"4": "Resistance (mΩ)",
-		"5": "Resistance (mΩ)",
-		"6": "Resistance (mΩ)",
-		"7": "Percentage",
-		"8": "Percentage",
-		"9": "Percentage",
-		"10": "Pod State"
+		"2": "Value",
+		"3": "Value",
+		"4": "Resistance (mΩ/10)",
+		"5": "Resistance (mΩ/10)",
+		"6": "Resistance (mΩ/10)",
+		"7": "Resistance (mΩ/10)",
+		"8": "Resistance (mΩ/10)",
+		"9": "Resistance (mΩ/10)",
+		"10": "ADC Ticks",
+		"11": "ADC Ticks",
+		"12": "ADC Ticks"
 	},
 
     	"PLOT_WINDOW_1":{
            "title": "Test Results",
            "x_data": [1],
-           "subplot1": [3, 4, 5, 6],
-           "subplot2": [7, 8],
-           "subplot3": [9],
-           "subplot4": [10]
+           "subplot1": [4, 5, 6, 7],
+           "subplot2": [8, 9],
+           "subplot3": [2, 3],
+           "subplot4": [10, 11, 12]
     	}
 }

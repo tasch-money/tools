@@ -5,12 +5,11 @@
 		"3": "r_live",
 		"4": "r_base",
 		"5": "r_targ",
-		"6": "p_desired",
+		"6": "r_avg",
 		"7": "p_live",
-		"8": "seebeck",
-		"9": "seebeck_offset",
-		"10": "duty_cycle",
-		"11": "pod_condition"
+		"8": "p_desired",
+		"9": "duty_cycle",
+		"10": "battery"
 	},
 
 	"HEADERS_LABELS":{
@@ -19,20 +18,18 @@
 		"3": "Resistance (mΩ)",
 		"4": "Resistance (mΩ)",
 		"5": "Resistance (mΩ)",
-		"6": "Power (mW)",
+		"6": "Resistance (mΩ)",
 		"7": "Power (mW)",
-		"8": "ADC ticks",
-		"9": "ADC ticks",
-		"10": "ticks",
-		"11": "Pod State"
+		"8": "Power (mW)",
+		"9": "Value",
+		"10": "Voltage (mV)"
 	},
 
     	"PLOT_WINDOW_1":{
            "title": "Test Results",
            "x_data": [1],
-           "subplot1": [3, 4, 5],
-           "subplot2": [6, 7],
-           "subplot3": [8, 9],
-           "subplot4": [11]
+           "subplot1": [3, 4, 5, 6],
+           "subplot2": [7, 8],
+           "subplot3": [10]
     	}
 }

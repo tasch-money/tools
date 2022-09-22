@@ -100,7 +100,7 @@ class PLOTTER:
 					# 	if 'tcr' in temp_line[15]:
 					# 		self.tcr = float(temp_line[16].strip())
 
-					if temp_line[0] == '$':
+					if temp_line[0] == '$' and (len(temp_line) == len(self.config["DATA_HEADERS"].keys()) + 1):
 						try:
 							temp_line.pop(0) 	# Remove '$'
 							temp_list = [float(j) for j in temp_line]
@@ -149,9 +149,13 @@ class PLOTTER:
 		self.df['time_stamp'] = (self.df['time_stamp'] - t_start) * 1e-3
 		# self.df['tcr_temp'] = (((self.df['r_targ'] - self.df['r_base'])/self.df['r_base']) / 0.000415) + 29
 		# self.df['tcr_live'] = (((self.df['r_live'] - self.df['r_base'])/self.df['r_base']) / 0.000415) + 29
-		# self.df['tcr_temp_plus'] = self.df['tcr_temp'] + 5
-		# self.df['tcr_temp_minus'] = self.df['tcr_temp'] - 5
-		# self.df['r_base_plus'] = self.df['r_base'] + 25
+		# self.df['r_targ_plus'] = self.df['r_targ'] + 50
+		# self.df['r_targ_minus'] = self.df['r_targ'] - 50
+		# overshoot = self.df['r_live'].max() - self.df['r_targ'].iat[-1]
+		# temp_overshoot = ((overshoot / self.df['r_base'].iat[-1]) / 0.000415)
+		# print("Overshoot: %.2fmΩ\r\nTemp Overshoot: %.2f˚C" % (overshoot * 0.1, temp_overshoot))
+		# self.df['r_base_plus'] = self.df['r_base'] + 100
+		self.df['r_diff_avg'] = self.df['r_diff_avg'] * 0.1
 		# self.df['r_base_minus'] = self.df['r_base'] - 25
 		# self.df['r_live_plus'] = self.df['r_live'] + 25
 		# self.df['r_live_minus'] = self.df['r_live'] - 25
@@ -199,8 +203,8 @@ class PLOTTER:
 				# ax[2].plot(self.df['time_stamp'], self.df['tcr_live'])
 				# ax[2].plot(self.df['time_stamp'], self.df['tcr_temp_plus'])
 				# ax[2].plot(self.df['time_stamp'], self.df['tcr_temp_minus'])
-				# ax[0].plot(self.df['time_stamp'], self.df['r_base_plus'])
-				# ax[0].plot(self.df['time_stamp'], self.df['r_base_minus'])
+				# ax[0].plot(self.df['time_stamp'], self.df['r_targ_plus'])
+				# ax[0].plot(self.df['time_stamp'], self.df['r_targ_minus'])
 				# ax[0].plot(self.df['time_stamp'], self.df['r_live_plus'])
 				# ax[0].plot(self.df['time_stamp'], self.df['r_live_minus'])
 				# ax[2].plot(self.df['time_stamp'],self.df['fixed_offset_plus'])
