@@ -341,12 +341,14 @@ class GUI(SerialPort):
             elif self.event == 'gui_button_heater_settings_send':
                 if self.is_port_open():
                     cp("Sending parameters!")
-                    if self.tx_check_box_dict['tcr'][0] == 1:
-                        tcr = self.window['gui_heater_tcr'].get()
-                        self.send_msg('heater tcr ' + tcr)
-                    if self.tx_check_box_dict['temp'][0] == 1:
-                        new_petal = int(self.e_val['gui_heater_temp'])
-                        self.send_msg('heater temp ' + PETAL_LOOKUP[new_petal])
+                    self.send_msg('psense enable 0')
+                    self.send_msg('heater ok2vape')
+                    # if self.tx_check_box_dict['tcr'][0] == 1:
+                    #     tcr = self.window['gui_heater_tcr'].get()
+                    #     self.send_msg('heater tcr ' + tcr)
+                    # if self.tx_check_box_dict['temp'][0] == 1:
+                    #     new_petal = int(self.e_val['gui_heater_temp'])
+                    #     self.send_msg('heater temp ' + PETAL_LOOKUP[new_petal])
 
             # ENDING
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
