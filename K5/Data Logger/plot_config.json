@@ -7,11 +7,10 @@
 		"5": "r_base",
 		"6": "r_targ",
 		"7": "r_fast",
-		"8": "r_diff",
-		"9": "r_diff_avg",
-		"10": "seebeck_offset",
-		"11": "seebeck_live",
-		"12": "seebeck_previous"
+		"8": "p_live",
+		"9": "seebeck_offset",
+		"10": "seebeck_live",
+		"11": "p_setting"
 	},
 
 	"HEADERS_LABELS":{
@@ -22,19 +21,18 @@
 		"5": "Resistance (mΩ/10)",
 		"6": "Resistance (mΩ/10)",
 		"7": "Resistance (mΩ/10)",
-		"8": "Resistance (mΩ/10)",
-		"9": "Resistance (mΩ/10)",
+		"8": "Power (mW)",
+		"9": "ADC Ticks",
 		"10": "ADC Ticks",
-		"11": "ADC Ticks",
-		"12": "ADC Ticks"
+		"11": "Power (mW)"
 	},
 
     	"PLOT_WINDOW_1":{
            "title": "Test Results",
            "x_data": [1],
            "subplot1": [4, 5, 6, 7],
-           "subplot2": [8, 9],
+           "subplot2": [8, 11],
            "subplot3": [2, 3],
-           "subplot4": [10, 11, 12]
+           "subplot4": [9, 10]
     	}
 }

@@ -155,7 +155,7 @@ class PLOTTER:
 		# temp_overshoot = ((overshoot / self.df['r_base'].iat[-1]) / 0.000415)
 		# print("Overshoot: %.2fmΩ\r\nTemp Overshoot: %.2f˚C" % (overshoot * 0.1, temp_overshoot))
 		# self.df['r_base_plus'] = self.df['r_base'] + 100
-		self.df['r_diff_avg'] = self.df['r_diff_avg'] * 0.1
+		# self.df['r_diff_avg'] = self.df['r_diff_avg'] * 0.1
 		# self.df['r_base_minus'] = self.df['r_base'] - 25
 		# self.df['r_live_plus'] = self.df['r_live'] + 25
 		# self.df['r_live_minus'] = self.df['r_live'] - 25

@@ -287,7 +287,7 @@ class GUI(SerialPort):
                     SetLED(self.window, 'gui_status_comms','green','green')
                     self.enable_logging(1)
                     self.update_param('gui_text_comms_stat', 'OPEN')
-                    self.send_msg('heater stream 1031')
+                    self.send_msg('psense enable 0')
                     self.initialize_flag = True
             elif self.event == 'gui_button_close_port':
                 if self.close_port():
@@ -341,7 +341,6 @@ class GUI(SerialPort):
             elif self.event == 'gui_button_heater_settings_send':
                 if self.is_port_open():
                     cp("Sending parameters!")
-                    self.send_msg('psense enable 0')
                     self.send_msg('heater ok2vape')
                     # if self.tx_check_box_dict['tcr'][0] == 1:
                     #     tcr = self.window['gui_heater_tcr'].get()
