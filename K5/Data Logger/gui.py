@@ -83,9 +83,8 @@ FRAME_DATA_PROCESSING_LAYOUT = [
 ]
 
 FRAME_HEATER_SETTINGS_LAYOUT = [
-    [sg.Text('PETAL',size=(8,1),font=GUI_FONT_MAIN),sg.Slider(range=(1, 4), orientation='h', size=(13, 20), default_value=2, key='gui_heater_temp'),sg.T('',size=(6,1)),sg.Checkbox('',default=True,enable_events=True,key='gui_ckbox_heater_temp_send')], 
-    [sg.Text('TCR',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_heater_tcr',size=(12,1), font=(GUI_TEXTFONT_ALL, GUI_INPUTTEXT_SIZE, GUI_INPUTTEXT_STYLE), justification=GUI_INPUTTEXT_JUSTIFY),sg.Text('ppm/˚C',size=(6,1),font=GUI_FONT_MAIN),sg.Checkbox('',default=True,enable_events=True,key='gui_ckbox_heater_tcr_send')], 
-    [sg.T('',size=(32,1)),sg.Button('SEND', key='gui_button_heater_settings_send')],
+    [sg.Text('Stream:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('ON', key='gui_button_heater_stream_on'),sg.Button('OFF', key='gui_button_heater_stream_off')], 
+    [sg.Button('OK2VAPE', key='gui_button_heater_settings_ok2vape')],
 ]
 
 FRAME_CONSOLE_LAYOUT = [
@@ -202,7 +201,7 @@ class GUI(SerialPort):
         SetLED(self.window, 'gui_status_comms','','red')
 
         # Initialze all displayed parameters
-        self.update_param('gui_heater_tcr'      ,   '-')
+        # self.update_param('gui_heater_tcr'      ,   '-')
 
         self.plot_file_path = ''
         self.config_file_path = 'plot_config.json'
@@ -326,28 +325,21 @@ class GUI(SerialPort):
                     cp('Please choose a data and configuration file to plot!')
 
             # HEATER CONTROL
-            elif self.event == 'gui_ckbox_heater_tcr_send':
-                self.tx_check_box_dict['tcr'][0] ^= 1
-                if self.tx_check_box_dict['tcr'][0] == 1:
-                    cp("Confirmed to send TCR")
-                else:
-                    cp("Confirmed to NOT send TCR")
+            elif self.event == 'gui_button_heater_stream_on':
+                if self.is_port_open():
+                    self.send_msg('heater stream 1')
+            elif self.event == 'gui_button_heater_stream_off':
+                if self.is_port_open():
+                    self.send_msg('heater stream 0')
             elif self.event == 'gui_ckbox_heater_temp_send':
                 self.tx_check_box_dict['temp'][0] ^= 1
                 if self.tx_check_box_dict['temp'][0] == 1:
                     cp("Confirmed to send Target Temp")
                 else:
                     cp("Confirmed to NOT send Target Temp")
-            elif self.event == 'gui_button_heater_settings_send':
+            elif self.event == 'gui_button_heater_settings_ok2vape':
                 if self.is_port_open():
-                    cp("Sending parameters!")
                     self.send_msg('heater ok2vape')
-                    # if self.tx_check_box_dict['tcr'][0] == 1:
-                    #     tcr = self.window['gui_heater_tcr'].get()
-                    #     self.send_msg('heater tcr ' + tcr)
-                    # if self.tx_check_box_dict['temp'][0] == 1:
-                    #     new_petal = int(self.e_val['gui_heater_temp'])
-                    #     self.send_msg('heater temp ' + PETAL_LOOKUP[new_petal])
 
             # ENDING
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
