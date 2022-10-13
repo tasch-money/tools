@@ -9,8 +9,8 @@ import PySimpleGUI as sg
 from file_manager import file_manager as fm
 from plotting import plotter
 
-PROJECT_TITLE = 'PAX ERA'
-PROJECT_COLOR_THEME = 'DarkTeal1'      # 'DarkAmber'
+PROJECT_TITLE = 'K5R'
+PROJECT_COLOR_THEME = 'DarkPurple1'      # 'DarkAmber'
 
 GUI_TEXTSIZE_TITLE = 20
 GUI_TEXTSIZE_FRAME = 14
@@ -73,7 +73,7 @@ def list_serial_ports():
 
 FRAME_COMMS_LAYOUT = [
     [sg.Text('Serial Port:',size=(8,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=28, readonly=True, enable_events=True, key='gui_comms_port_list'),sg.Button('OPEN', key='gui_button_open_port'),sg.Button('CLOSE', key='gui_button_close_port')],
-    [sg.Text('Status:',size=(8,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms',radius=14),sg.T('',size=(8,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat'),sg.T('',size=(20,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port')],
+    [sg.Text('Status:',size=(8,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms',radius=14),sg.T('',size=(8,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat'),sg.T('',size=(24,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port')],
 ]
 
 FRAME_DATA_PROCESSING_LAYOUT = [
@@ -82,10 +82,19 @@ FRAME_DATA_PROCESSING_LAYOUT = [
     # [sg.Text('Config File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_config_file',size=(26,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_config_browser', size=(6,1), font=GUI_FONT_MAIN)],
 ]
 
-FRAME_HEATER_SETTINGS_LAYOUT = [
+FRAME_CLI_CONTROL_LAYOUT = [
     [sg.Text('Stream:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('ON', key='gui_button_heater_stream_on'),sg.Button('OFF', key='gui_button_heater_stream_off')], 
-    [sg.Text('K3 Fire:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('ON', key='gui_button_heater_k3_on'),sg.Button('OFF', key='gui_button_heater_k3_off')], 
-    [sg.Button('OK2VAPE', key='gui_button_heater_settings_ok2vape')],
+    [sg.Text('Psense:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('ON', key='gui_button_psense_on'),sg.Button('OFF', key='gui_button_psense_off')], 
+    [sg.Button('OK2VAPE',size=(10,1), key='gui_button_heater_settings_ok2vape'),sg.Input(key='gui_ok2vape_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000'),sg.Text('ms',size=(8,1),font=GUI_FONT_MAIN)],
+    [sg.Text('K3 ONLY:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('FIRE', key='gui_button_heater_k3_on'),sg.Button('STOP', key='gui_button_heater_k3_off')],
+]
+
+FRAME_TESTING_LAYOUT = [
+    [sg.Text('Heater on_time (ms):',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_heater_on_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000')], 
+    [sg.Text('Heater off_time (ms):',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_heater_off_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000')],
+    [sg.Text('Number puffs:',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_number_puffs',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10')],
+    [sg.Text('File Name:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_file_name',size=(16,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='')],
+    [sg.Button('GO!', size=(25,1),font=GUI_FONT_MAIN, key='gui_button_test_go')],
 ]
 
 FRAME_CONSOLE_LAYOUT = [
@@ -96,7 +105,7 @@ GUI_LAYOUT = [
     [sg.Text(PROJECT_TITLE, font=GUI_FONT_TITLE, key='gui_title')],
     [sg.Frame('CONNECTION', FRAME_COMMS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_serial')],
     [sg.Frame('DATA PROCESSING', FRAME_DATA_PROCESSING_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_data_flow_ctrl')],
-    [sg.Frame('HEATER SETTINGS', FRAME_HEATER_SETTINGS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_heater_settings')],
+    [sg.Frame('CLI CONTROL', FRAME_CLI_CONTROL_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_cli_control'),sg.Frame('TESTING MODE', FRAME_TESTING_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_testing_mode')],
     [sg.Frame('CONSOLE', FRAME_CONSOLE_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_console')],
     [sg.Button('EXIT', key='gui_button_exit')],
 ]
@@ -111,6 +120,7 @@ class SerialPort:
         self.last_command = ''
         self.send_command_flag = False
         self.resend_command_flag = False
+        self.msg_time = 0
 
     def open_port(self, port, baud=115200, time_out=0.1):
         self.lock.acquire()
@@ -169,13 +179,19 @@ class SerialPort:
             return False
 
     def send_msg(self, msg):
+        self.lock.acquire()
         msg += '\r'
         self.ser.write(msg.encode())
+        self.send_command_flag = True
         self.last_command = msg
+        self.msg_time = time.time()
+        self.lock.release()
 
     def resend_msg(self):
         self.ser.write(self.last_command.encode())
         self.resend_command_flag = False
+        self.send_command_flag = True
+        self.msg_time = time.time()
 
     def RX(self):
         self.lock.acquire()
@@ -216,56 +232,57 @@ class GUI(SerialPort):
 
         self.initialize_flag = False
 
+        self.heater_on_time = 10.0      # Float value in seconds for heating time
+        self.heater_off_time = 10.0     # Float value in seconds for downtime between puffs
+        self.num_puffs = 10             # Number of puffs desired
+        self.puff_counter = 0           # Puff counter
+        self.test_file_name = ''        # Desired file name
+        self.test_flag = False          # Main flag for indicating test 
+        self.test_mode_start = 0        # Value for indicating test started
+        self.test_time = 0
+
     def update_param(self, param, val):
         self.window[param].Update(value=val)
 
     def parse_line(self, line):
-        try:
-            cp(line)
-            if self.log_stat == 1:
-                # if ('$' in line) :
-                fm.write_log(line)
-                if self.k3_fire_flag:
-                    now = time.time()
-                    if (now - self.start) > 0.1:
-                        self.start = now
-                        self.ser.write('f'.encode())
-            # param = ''
-            # if ('$' in line) or ('setpt' in line):
-            #     cp(line)
-            #     if self.log_stat == 1:
-            #         fm.write_log(line)
-            # elif 'tcr' in line:
-            #     msg = line.split(' ')
-            #     if msg[0] == 'tcr':
-            #         param = msg[0]
-            #         value = msg[1]
-            #         cp('TCR = %sppm/˚C' % value)
-            #         if self.initialize_flag:
-            #             self.window.write_event_value('gui_initialize_dvc_message', 'temp')
-            # elif 'temp' in line:
-            #     msg = line.split(' ')
-            #     if msg[0] == 'temp':
-            #         temp_value = msg[1]
-            #         for k,v in PETAL_LOOKUP.items():
-            #             if temp_value in v:
-            #                 param = msg[0]
-            #                 value = k
-            #                 cp('Petal Setting = %d' % value)
-            #                 if self.initialize_flag:
-            #                     self.initialize_flag = False
-            # elif 'stream' in line:
-            #     msg = line.split(' ')
-            #     if msg[0] == 'stream' and msg[1] == '1031':
-            #         self.window.write_event_value('gui_initialize_dvc_message', 'tcr')
-            # elif '??' in line:
-            #     self.resend_command_flag = True
+        # try:
+        cp(line)
+        if self.log_stat == 1:
+            fm.write_log(line)
+            now = time.time()
 
-            # if param in PARSE_LINE_PARAM_UPDATE_LIST:
-            #     gui_param = 'gui_heater_{}'.format(param)
-            #     self.update_param(gui_param, value)
-        except:
-            cp('ERROR: BAD DATA LINE!')
+            if self.send_command_flag:
+                if (now - self.msg_time) > 0.2:
+                    self.send_command_flag = False
+                    if self.test_mode_start == 1:
+                        self.test_mode_start = 2
+                        self.send_msg('heater stream 1')
+                    elif self.test_mode_start == 2:
+                        self.test_mode_start = 0
+                        self.puff_counter += 1
+                        self.send_msg('heater ok2vape ' + str(int(self.heater_on_time * 1000)))
+
+                if '??' in line:
+                    self.send_command_flag = False
+                    self.resend_command_flag = True
+
+            if self.test_flag:
+                if (now - self.test_time) > (self.heater_on_time + self.heater_off_time + 1):
+                    if self.puff_counter >= self.num_puffs:
+                        self.end_test()
+                    else:
+                        self.test_time = now
+                        self.puff_counter += 1
+                        self.send_msg('heater ok2vape ' + str(int(self.heater_on_time * 1000)))
+
+            # K3 ONLY!
+            if self.k3_fire_flag:
+                if (now - self.start) > 0.1:
+                    self.start = now
+                    self.ser.write('f'.encode())
+
+        # except:
+        #     cp('ERROR: BAD DATA LINE!')
 
     def enable_logging(self, enable):
         if enable:
@@ -276,6 +293,36 @@ class GUI(SerialPort):
             logfile = fm.close_log_file()
             cp('Closing logfile: %s' % logfile)
             self.log_stat = 0
+
+    def start_test(self, e_val):
+        self.heater_on_time = float(e_val['gui_test_heater_on_time']) * 0.001
+        self.heater_off_time = float(e_val['gui_test_heater_off_time']) * 0.001
+        self.num_puffs = int(e_val['gui_test_number_puffs'])
+        self.test_file_name = e_val['gui_test_file_name']
+        self.puff_counter = 0
+        current_logfile = fm.close_log_file()
+        cp('Closing logfile: %s' % current_logfile)
+        current_logfile = fm.create_log_file(self.test_file_name)
+        cp('New logfile created: %s' % current_logfile)
+        self.log_stat = 1
+        self.test_flag = True
+        self.test_mode_start = 1
+        self.test_time = time.time()
+        self.send_msg('psense enable 0')
+
+    def end_test(self):
+        self.send_msg('heater stream 0')
+        sleep(1)
+        self.puff_counter = 0
+        current_logfile = fm.close_log_file()
+        cp('Closing logfile: %s' % current_logfile)
+        self.log_stat = 0
+        self.test_flag = False
+        self.test_mode_start = 0
+        old_file = current_logfile.strip(".log")
+        new_num = int(old_file.split('_')[-1]) + 1
+        new_file_name = old_file.replace(old_file[-1], str(new_num))
+        self.update_param('gui_test_file_name', new_file_name)
 
     def event_loop(self):
         # Event Loop to process "events"
@@ -294,7 +341,6 @@ class GUI(SerialPort):
                     SetLED(self.window, 'gui_status_comms','green','green')
                     self.enable_logging(1)
                     self.update_param('gui_text_comms_stat', 'OPEN')
-                    # self.send_msg('psense enable 0')
                     self.initialize_flag = True
             elif self.event == 'gui_button_close_port':
                 if self.close_port():
@@ -305,11 +351,6 @@ class GUI(SerialPort):
             elif self.event == 'gui_button_refresh_port':
                 cp("Refreshing Serial Ports!")
                 self.window['gui_comms_port_list'].Update(values=list_serial_ports())
-            # elif self.event == 'gui_initialize_dvc_message':
-            #     if self.e_val[self.event] == 'tcr':
-            #         self.send_msg('heater tcr')
-            #     elif self.e_val[self.event] == 'temp':
-            #         self.send_msg('heater temp')
 
             # DATA PROCESSING
             elif self.event == 'gui_process_data_file':
@@ -332,13 +373,19 @@ class GUI(SerialPort):
                 else:
                     cp('Please choose a data and configuration file to plot!')
 
-            # HEATER CONTROL
+            # CLI CONTROL
             elif self.event == 'gui_button_heater_stream_on':
                 if self.is_port_open():
                     self.send_msg('heater stream 1')
             elif self.event == 'gui_button_heater_stream_off':
                 if self.is_port_open():
                     self.send_msg('heater stream 0')
+            elif self.event == 'gui_button_psense_on':
+                if self.is_port_open():
+                    self.send_msg('psense enable 1')
+            elif self.event == 'gui_button_psense_off':
+                if self.is_port_open():
+                    self.send_msg('psense enable 0')
             elif self.event == 'gui_button_heater_k3_on':
                 if self.is_port_open():
                     self.k3_fire_flag = True
@@ -355,7 +402,12 @@ class GUI(SerialPort):
                     cp("Confirmed to NOT send Target Temp")
             elif self.event == 'gui_button_heater_settings_ok2vape':
                 if self.is_port_open():
-                    self.send_msg('heater ok2vape')
+                    self.send_msg('heater ok2vape ' + self.e_val['gui_ok2vape_time'])
+
+            # TESTING MODE
+            elif self.event == 'gui_button_test_go':
+                if self.is_port_open():
+                    self.start_test(self.e_val)
 
             # ENDING
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':

@@ -1,0 +1,58 @@
+{
+	"DATA_HEADERS":{
+		"1": "temp1",
+		"2": "temp2",
+		"3": "temp3",
+		"4": "temp4",
+		"5": "scale",
+		"6": "tcr",
+		"7": "r_live",
+		"8": "r_base",
+		"9": "r_targ",
+		"10": "set_temp",
+		"11": "dut_temp",
+		"12": "duty_cycle",
+		"13": "power",
+		"14": "session_usage",
+		"15": "adc_res",
+		"16": "adc_sb",
+		"17": "temp5",
+		"18": "temp6",
+		"19": "temp7",
+		"20": "temp8",
+		"21": "temp9"
+	},
+
+	"HEADERS_LABELS":{
+		"1": "Value",
+		"2": "Value",
+		"3": "Value",
+		"4": "Value",
+		"5": "Scale",
+		"6": "TCR",
+		"7": "Resistance (mΩ/10)",
+		"8": "Resistance (mΩ/10)",
+		"9": "Resistance (mΩ/10)",
+		"10": "Temperature (˚C)",
+		"11": "Temperature (˚C)",
+		"12": "Duty",
+		"13": "Power (W)",
+		"14": "Value",
+		"15": "Ticks",
+		"16": "Ticks",
+		"17": "Value",
+		"18": "Value",
+		"19": "Value",
+		"20": "Value",
+		"21": "Value"
+	},
+
+    	"PLOT_WINDOW_1":{
+           "title": "Test Results",
+           "x_data": [1],
+           "subplot1": [7, 8, 9],
+           "subplot2": [15, 16],
+           "subplot3": [13],
+           "subplot4": [5]
+    	}
+}
