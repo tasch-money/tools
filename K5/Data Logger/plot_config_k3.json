@@ -1,0 +1,40 @@
+{
+	"DATA_HEADERS":{
+		"1": "scale",
+		"2": "tcr",
+		"3": "r_live",
+		"4": "r_base",
+		"5": "r_targ",
+		"6": "set_temp",
+		"7": "dut_temp",
+		"8": "duty_cycle",
+		"9": "power",
+		"10": "session_usage",
+		"11": "adc_res",
+		"12": "adc_sb"
+	},
+
+	"HEADERS_LABELS":{
+		"1": "Scale",
+		"2": "TCR",
+		"3": "Resistance (mΩ/10)",
+		"4": "Resistance (mΩ/10)",
+		"5": "Resistance (mΩ/10)",
+		"6": "Temperature (˚C)",
+		"7": "Temperature (˚C)",
+		"8": "Duty",
+		"9": "Power (W)",
+		"10": "Value",
+		"11": "Ticks",
+		"12": "Ticks"
+	},
+
+    	"PLOT_WINDOW_1":{
+           "title": "Test Results",
+           "x_data": [1],
+           "subplot1": [3, 4, 5],
+           "subplot2": [11, 12],
+           "subplot3": [9],
+           "subplot4": [1]
+    	}
+}
