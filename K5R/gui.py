@@ -94,7 +94,7 @@ FRAME_TESTING_LAYOUT = [
     [sg.Text('Heater off_time (ms):',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_heater_off_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000')],
     [sg.Text('Number puffs:',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_number_puffs',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10')],
     [sg.Text('File Name:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_file_name',size=(16,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='')],
-    [sg.Button('GO!', size=(25,1),font=GUI_FONT_MAIN, key='gui_button_test_go')],
+    [sg.Button('GO!', size=(11,1),font=GUI_FONT_MAIN, key='gui_button_test_go'), sg.Button('HALT!', size=(11,1),font=GUI_FONT_MAIN, key='gui_button_test_halt')],
 ]
 
 FRAME_CONSOLE_LAYOUT = [
@@ -252,7 +252,7 @@ class GUI(SerialPort):
             now = time.time()
 
             if self.send_command_flag:
-                if (now - self.msg_time) > 0.2:
+                if (now - self.msg_time) > 0.5:
                     self.send_command_flag = False
                     if self.test_mode_start == 1:
                         self.test_mode_start = 2
@@ -319,10 +319,13 @@ class GUI(SerialPort):
         self.log_stat = 0
         self.test_flag = False
         self.test_mode_start = 0
-        old_file = current_logfile.strip(".log")
-        new_num = int(old_file.split('_')[-1]) + 1
-        new_file_name = old_file.replace(old_file[-1], str(new_num))
-        self.update_param('gui_test_file_name', new_file_name)
+        try:
+            old_file = current_logfile.strip(".log")
+            new_num = int(old_file.split('_')[-1]) + 1
+            new_file_name = old_file.replace(old_file[-1], str(new_num))
+            self.update_param('gui_test_file_name', new_file_name)
+        except:
+            print("File name not incremented!")
 
     def event_loop(self):
         # Event Loop to process "events"
@@ -408,6 +411,9 @@ class GUI(SerialPort):
             elif self.event == 'gui_button_test_go':
                 if self.is_port_open():
                     self.start_test(self.e_val)
+            elif self.event == 'gui_button_test_halt':
+                if self.is_port_open():
+                    self.end_test()
 
             # ENDING
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
