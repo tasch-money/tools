@@ -1,38 +1,26 @@
 {
 	"DATA_HEADERS":{
 		"1": "time_stamp",
-		"2": "scale",
-		"3": "r_live",
-		"4": "r_base",
-		"5": "r_targ",
-		"6": "r_avg",
-		"7": "p_live",
-		"8": "p_desired",
-		"9": "vbat_loaded",
-		"10": "seebeck_offset",
-		"11": "seebeck_live",
-		"12": "adc_res"
+		"2": "heating",
+		"3": "vbat_loaded",
+		"4": "vbat_unloaded",
+		"5": "p_live",
+		"6": "p_desired"
 	},
 
 	"HEADERS_LABELS":{
 		"1": "Time (sec)",
-		"2": "Scale",
-		"3": "Resistance (mΩ)",
-		"4": "Resistance (mΩ)",
-		"5": "Resistance (mΩ)",
-		"6": "Resistance (mΩ)",
-		"7": "Power (mW)",
-		"8": "Power (mW)",
-		"9": "Voltage (mV)",
-		"10": "Ticks",
-		"11": "Ticks",
-		"12": "Ticks"
+		"2": "Value",
+		"3": "Voltage (mV)",
+		"4": "Voltage (mV)",
+		"5": "Power (mW)",
+		"6": "Power (mW)"
 	},
 
-    	"PLOT_WINDOW_1":{
-           "title": "Test Results",
-           "x_data": [1],
-           "subplot1": [3, 4, 5, 6],
-           "subplot2": [12, 10, 11]
-    	}
+	"PLOT_WINDOW_1":{
+       "title": "Test Results",
+       "x_data": [1],
+       "subplot1": [3, 4],
+       "subplot2": [5, 6]
+	}
 }

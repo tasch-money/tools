@@ -5,9 +5,7 @@
 		"3": "vbat_loaded",
 		"4": "vbat_unloaded",
 		"5": "p_live",
-		"6": "p_desired",
-		"7": "heater_state",
-		"8": "pod_condition"
+		"6": "p_desired"
 	},
 
 	"HEADERS_LABELS":{
@@ -16,9 +14,7 @@
 		"3": "Voltage (mV)",
 		"4": "Voltage (mV)",
 		"5": "Power (mW)",
-		"6": "Power (mW)",
-		"7": "Value",
-		"8": "Value"
+		"6": "Power (mW)"
 	},
 
 	"PLOT_WINDOW_1":{
