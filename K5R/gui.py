@@ -92,7 +92,7 @@ FRAME_CLI_CONTROL_LAYOUT = [
 FRAME_TESTING_LAYOUT = [
     [sg.Text('Heater on_time (ms):',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_heater_on_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000')], 
     [sg.Text('Heater off_time (ms):',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_heater_off_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000')],
-    [sg.Text('Number puffs:',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_number_puffs',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10')],
+    [sg.Text('Puff:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_puff_count',size=(5,1),font=GUI_FONT_MAIN,justification='right', disabled=True, default_text='-'),sg.Text('of',size=(2,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_number_puffs',size=(5,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10')],
     [sg.Text('File Name:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_file_name',size=(16,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='')],
     [sg.Button('GO!', size=(11,1),font=GUI_FONT_MAIN, key='gui_button_test_go'), sg.Button('HALT!', size=(11,1),font=GUI_FONT_MAIN, key='gui_button_test_halt')],
 ]
@@ -119,7 +119,6 @@ class SerialPort:
         self.lock = threading.Lock()
         self.last_command = ''
         self.send_command_flag = False
-        self.resend_command_flag = False
         self.msg_time = 0
 
     def open_port(self, port, baud=115200, time_out=0.1):
@@ -189,7 +188,6 @@ class SerialPort:
 
     def resend_msg(self):
         self.ser.write(self.last_command.encode())
-        self.resend_command_flag = False
         self.send_command_flag = True
         self.msg_time = time.time()
 
@@ -245,7 +243,6 @@ class GUI(SerialPort):
         self.window[param].Update(value=val)
 
     def parse_line(self, line):
-        # try:
         cp(line)
         if self.log_stat == 1:
             fm.write_log(line)
@@ -260,11 +257,11 @@ class GUI(SerialPort):
                     elif self.test_mode_start == 2:
                         self.test_mode_start = 0
                         self.puff_counter += 1
+                        self.update_param('gui_test_puff_count', self.puff_counter)
                         self.send_msg('heater ok2vape ' + str(int(self.heater_on_time * 1000)))
 
                 if '??' in line:
-                    self.send_command_flag = False
-                    self.resend_command_flag = True
+                    self.resend_msg()
 
             if self.test_flag:
                 if (now - self.test_time) > (self.heater_on_time + self.heater_off_time + 1):
@@ -273,6 +270,7 @@ class GUI(SerialPort):
                     else:
                         self.test_time = now
                         self.puff_counter += 1
+                        self.update_param('gui_test_puff_count', self.puff_counter)
                         self.send_msg('heater ok2vape ' + str(int(self.heater_on_time * 1000)))
 
             # K3 ONLY!
@@ -280,9 +278,6 @@ class GUI(SerialPort):
                 if (now - self.start) > 0.1:
                     self.start = now
                     self.ser.write('f'.encode())
-
-        # except:
-        #     cp('ERROR: BAD DATA LINE!')
 
     def enable_logging(self, enable):
         if enable:
@@ -300,6 +295,7 @@ class GUI(SerialPort):
         self.num_puffs = int(e_val['gui_test_number_puffs'])
         self.test_file_name = e_val['gui_test_file_name']
         self.puff_counter = 0
+        self.update_param('gui_test_puff_count', self.puff_counter)
         current_logfile = fm.close_log_file()
         cp('Closing logfile: %s' % current_logfile)
         current_logfile = fm.create_log_file(self.test_file_name)
@@ -314,6 +310,7 @@ class GUI(SerialPort):
         self.send_msg('heater stream 0')
         sleep(1)
         self.puff_counter = 0
+        self.update_param('gui_test_puff_count', self.puff_counter)
         current_logfile = fm.close_log_file()
         cp('Closing logfile: %s' % current_logfile)
         self.log_stat = 0
@@ -431,8 +428,6 @@ def thread_comms(thread_name, period, gui):
                 while gui.ser.in_waiting:
                     line = gui.RX()
                     gui.parse_line(line)
-                if gui.resend_command_flag:
-                    gui.resend_msg()
             except:
                 pass
         sleep(period * 0.001)

@@ -9,7 +9,7 @@ matplotlib.use("TkAgg")
 LO_RES_TIME_FORMAT = '%04d%02d%02d'      # YYYYMMDD
 HI_RES_TIME_FORMAT = '%04d%02d%02d-%02d%02d%02d'    #YYYYMMDD-HHMMSS
 
-log_directory = '/Users/matt/Documents/Git/tools/K5R/logs/'
+log_directory = '/Users/matt/Documents/Git/tools/K5R/battery_logs/'
 
 column_names = [
     'dut_ts',
