@@ -37,7 +37,6 @@ sg.theme(PROJECT_COLOR_THEME)
 #TEST SETTING GLOBALS
 DUT = 8
 FURNACE_TEMP_TOLERANCE = 1
-FURNACE_DWELL_TIME = 600
 TEMPERATURES_TESTED_AT = [150, 200, 300, 400, 500]
 resistance_measurement = 0
 
@@ -247,6 +246,7 @@ class GUI(SerialPort):
         self.furnace_start_dwell_time = 0
         self.temps_tested_at_index = 0
         self.furnace_connected = False
+        self.furnace_dwell_time = 600
 
     def update_param(self, param, val):
         self.window[param].Update(value=val)
@@ -260,7 +260,7 @@ class GUI(SerialPort):
         self.enable_logging(1)
         self.temps_tested_at_index = 0
         self.furnace_set_temp = TEMPERATURES_TESTED_AT[self.temps_tested_at_index]
-        cp("Dwell time at temperature setpoint:",FURNACE_DWELL_TIME)
+        cp("Dwell time at temperature setpoint:",self.furnace_dwell_time)
         self.set_furnace_temperature(self.furnace_set_temp)
         self.start_test_flag = 1
 
@@ -292,7 +292,7 @@ class GUI(SerialPort):
 
         #IF DWELL TIME HAS BEEN REACHED, start ramp to next temp
         if(self.dwell_flag == True):
-            if((time.time() - self.furnace_start_dwell_time >= FURNACE_DWELL_TIME)):
+            if((time.time() - self.furnace_start_dwell_time >= self.furnace_dwell_time)):
                 self.dwell_flag = False
 
                 self.temps_tested_at_index = self.temps_tested_at_index + 1
@@ -464,7 +464,6 @@ class GUI(SerialPort):
                 global TEMPERATURES_TESTED_AT
                 global DUT
                 TEMPERATURES_TESTED_AT = [int(self.window['temp1'].Get()), int(self.window['temp2'].Get()), int(self.window['temp3'].Get()), int(self.window['temp4'].Get()), (self.window['temp5'].Get())]
-                FURNACE_DWELL_TIME = [int(self.window['dwell time'].Get())]
                 cp(TEMPERATURES_TESTED_AT)
                 if self.is_port_open():
                     DUT = self.window['num_devices'].Get()
@@ -489,7 +488,7 @@ class GUI(SerialPort):
             # TEST CONTROL
             elif self.event == 'gui_button_start':
                 TEMPERATURES_TESTED_AT = [self.window['temp1'].Get(), self.window['temp2'].Get(), self.window['temp3'].Get(), self.window['temp4'].Get(), self.window['temp5'].Get()]
-                FURNACE_DWELL_TIME = [int(self.window['dwell time'].Get())]
+                self.furnace_dwell_time = int(self.window['dwell time'].Get())
                 self.start_test()
 
             elif self.event == 'gui_button_stop':

@@ -9,8 +9,8 @@ import PySimpleGUI as sg
 from file_manager import file_manager as fm
 from plotting import plotter
 
-PROJECT_TITLE = 'K5R'
-PROJECT_COLOR_THEME = 'DarkPurple1'      # 'DarkAmber'
+PROJECT_TITLE = 'TCR Rig V2.0'
+PROJECT_COLOR_THEME = 'TealMono'      # 'Coral'
 
 GUI_TEXTSIZE_TITLE = 20
 GUI_TEXTSIZE_FRAME = 14
@@ -29,16 +29,40 @@ GUI_FONT_TITLE = (GUI_TEXTFONT_ALL, GUI_TEXTSIZE_TITLE)
 
 GUI_BORDERWIDTH_FRAME = 10
 
-PARSE_LINE_PARAM_UPDATE_LIST = ['tcr', 'temp']
 cp = sg.cprint
 
 # Define overall GUI theme color scheme (See bottom of script for possible color themes)
-# sg.theme('DarkAmber')
 sg.theme(PROJECT_COLOR_THEME)
 
-PETAL_LOOKUP = {1: '270', 2: '320', 3: '370', 4: '420'}
+#TEST SETTING GLOBALS
+SER_BAUD_RATE_ARDUINO = 115200
+SER_BAUD_RATE_FURNACE = 4800
 
-# Global Functions
+READ_MESSAGE = 0
+WRITE_MESSAGE = 1
+
+ACK = '\x06'    # Affirmative response about the receiving
+NAK = '\x15'    # Negative response about the receiving
+
+
+DUT = 8
+FURNACE_TEMP_TOLERANCE = 1
+FURNACE_DWELL_TIME = 600
+TEMPERATURES_TESTED_AT = [150, 200, 300, 400, 500]
+resistance_measurement = 0
+
+cmd_one = "one"
+cmd_two = "two"
+cmd_three = "thr"
+cmd_four = "fou"
+cmd_five = "fiv"
+cmd_six = "six"
+cmd_seven = "sev"
+cmd_eight = "eig"
+cmd_list = [cmd_one, cmd_two, cmd_three, cmd_four, cmd_five, cmd_six, cmd_seven, cmd_eight]
+
+
+# GLOBAL FUNCTIONS
 def LEDIndicator(key=None, radius=15):
     return sg.Graph(canvas_size=(radius, radius),
              graph_bottom_left=(-radius, -radius),
@@ -72,58 +96,54 @@ def list_serial_ports():
     return result
 
 FRAME_COMMS_LAYOUT = [
-    [sg.Text('Serial Port:',size=(8,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=28, readonly=True, enable_events=True, key='gui_comms_port_list'),sg.Button('OPEN', key='gui_button_open_port'),sg.Button('CLOSE', key='gui_button_close_port')],
-    [sg.Text('Status:',size=(8,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms',radius=14),sg.T('',size=(8,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat'),sg.T('',size=(24,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port')],
+    [sg.Text('Serial Port:',size=(10,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=55, readonly=True, enable_events=True, key='gui_comms_port_list'),sg.Button('OPEN', key='gui_button_open_port'),sg.Button('CLOSE', key='gui_button_close_port')],
+    [sg.Text('Status:',size=(10,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms',radius=14),sg.T('',size=(10,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat'),sg.T('',size=(57,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port')],
+]
+
+FRAME_COMMS_LAYOUT_2 = [
+    [sg.Text('Serial Port:',size=(10,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=55, readonly=True, enable_events=True, key='gui_comms_port_list_1'),sg.Button('OPEN', key='gui_button_open_port_1'),sg.Button('CLOSE', key='gui_button_close_port_1')],
+    [sg.Text('Status:',size=(10,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms_1',radius=14),sg.T('',size=(10,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat_1'),sg.T('',size=(57,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port_1')],
 ]
 
 FRAME_DATA_PROCESSING_LAYOUT = [
-    [sg.Text('Data File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_data_file',size=(26,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_file_browser', size=(6,1), font=GUI_FONT_MAIN),sg.Button('PLOT',key='gui_button_process_plot',size=(4,1),font=GUI_FONT_MAIN)],
-    [sg.T('', size=(1,1))],
-    # [sg.Text('Config File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_config_file',size=(26,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_config_browser', size=(6,1), font=GUI_FONT_MAIN)],
+    [sg.Text('Data File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_data_file',size=(52,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_file_browser', size=(10,1), font=GUI_FONT_MAIN),sg.Button('Plot',key='gui_button_process_plot',size=(4,1),font=GUI_FONT_MAIN)],
+    #[sg.T('', size=(1,1))],
+    [sg.Text('Config File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_config_file',size=(52,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_config_browser', size=(10,1), font=GUI_FONT_MAIN)],
 ]
 
-FRAME_CLI_CONTROL_LAYOUT = [
-    [sg.Text('Stream:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('ON', key='gui_button_heater_stream_on'),sg.Button('OFF', key='gui_button_heater_stream_off')], 
-    [sg.Text('Psense:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('ON', key='gui_button_psense_on'),sg.Button('OFF', key='gui_button_psense_off')], 
-    [sg.Button('OK2VAPE',size=(10,1), key='gui_button_heater_settings_ok2vape'),sg.Input(key='gui_ok2vape_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000'),sg.Text('ms',size=(8,1),font=GUI_FONT_MAIN)],
-    [sg.Text('K3 ONLY:',size=(8,1),font=GUI_FONT_MAIN),sg.Button('FIRE', key='gui_button_heater_k3_on'),sg.Button('STOP', key='gui_button_heater_k3_off')],
-]
-
-FRAME_TESTING_LAYOUT = [
-    [sg.Text('Heater on_time (ms):',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_heater_on_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000')], 
-    [sg.Text('Heater off_time (ms):',size=(16,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_heater_off_time',size=(8,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10000')],
-    [sg.Text('Puff:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_puff_count',size=(5,1),font=GUI_FONT_MAIN,justification='right', disabled=True, default_text='-'),sg.Text('of',size=(2,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_number_puffs',size=(5,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='10')],
-    [sg.Text('File Name:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_test_file_name',size=(16,1),font=GUI_FONT_MAIN,justification='right', change_submits=True, default_text='')],
-    [sg.Button('GO!', size=(11,1),font=GUI_FONT_MAIN, key='gui_button_test_go'), sg.Button('HALT!', size=(11,1),font=GUI_FONT_MAIN, key='gui_button_test_halt')],
+FRAME_TEST_SETTINGS_LAYOUT = [
+    #[sg.Text('TCR',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_heater_tcr',size=(12,1), font=(GUI_TEXTFONT_ALL, GUI_INPUTTEXT_SIZE, GUI_INPUTTEXT_STYLE), justification=GUI_INPUTTEXT_JUSTIFY),sg.Text('ppm/˚C',size=(6,1),font=GUI_FONT_MAIN),sg.Checkbox('',default=True,enable_events=True,key='gui_ckbox_heater_tcr_send')], 
+    [sg.Text('Temperatures Tested',size=(20,1),font=GUI_FONT_MAIN)], 
+    [sg.Spin(key = 'temp_set_1', values=[i for i in range(1, 1000)], initial_value='100', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN), sg.Spin(key = 'temp_set_2', values=[i for i in range(1, 1000)], initial_value='200', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp_set_3', values=[i for i in range(1, 1000)], initial_value='300', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp_set_5', values=[i for i in range(1, 1000)], initial_value='400', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp_set_5', values=[i for i in range(1, 1000)], initial_value='500', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN)],
+    [sg.Text('Number of Devices',size=(14,1),font=GUI_FONT_MAIN),sg.Spin(values = [i for i in range(1, 9)], size=(3, 5), initial_value=8, key='num_devices', font=GUI_FONT_MAIN), sg.Text('Dwell Time (s)',size=(10,1),font=GUI_FONT_MAIN),sg.Spin(key = 'dwell time', values=[i for i in range(1, 100000)], initial_value='6000', size=(7,5), font=GUI_FONT_MAIN), sg.T('',size=(1,1))]
 ]
 
 FRAME_CONSOLE_LAYOUT = [
-    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,autoscroll=True,size=(60,10),reroute_cprint=True, write_only=True)],
+    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,text_color = 'LightGreen', autoscroll=True, size=(80, 12),reroute_cprint=True, write_only=True)],
 ]
 
+#Main GUI Layout
 GUI_LAYOUT = [  
     [sg.Text(PROJECT_TITLE, font=GUI_FONT_TITLE, key='gui_title')],
-    [sg.Frame('CONNECTION', FRAME_COMMS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_serial')],
+    [sg.Frame('ARDUINO CONNECTION', FRAME_COMMS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_serial')],
+    [sg.Frame('FURNACE CONNECTION', FRAME_COMMS_LAYOUT_2, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_serial_1')],
     [sg.Frame('DATA PROCESSING', FRAME_DATA_PROCESSING_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_data_flow_ctrl')],
-    [sg.Frame('CLI CONTROL', FRAME_CLI_CONTROL_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_cli_control'),sg.Frame('TESTING MODE', FRAME_TESTING_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_testing_mode')],
+    [sg.Frame('TEST SETTINGS', FRAME_TEST_SETTINGS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_test_settings')],
     [sg.Frame('CONSOLE', FRAME_CONSOLE_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_console')],
-    [sg.Button('EXIT', key='gui_button_exit')],
+    [sg.Button('EXIT', key='gui_button_exit'), sg.Button('START', key='gui_button_start'),sg.Button('STOP', key='gui_button_stop'),]
 ]
 
 class SerialPort:
-    def __init__(self):
+    def __init__(self, baud=115200, stop_bits=serial.STOPBITS_ONE, time_out=0.1):
         self.port = None
-        self.ser = None
+        self.ser = serial.Serial(port=self.port, baudrate=baud, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=stop_bits, timeout=time_out)
         self.port_new = None
         self.port_open = False
-        self.lock = threading.Lock()
         self.last_command = ''
         self.send_command_flag = False
-        self.msg_time = 0
-        self.msg_timeout = 0.5
+        self.resend_command_flag = False
 
-    def open_port(self, port, baud=115200, time_out=0.1):
-        self.lock.acquire()
+    def open_port(self, port):
         if self.port_open:
             if self.port != port:
                 cp("PORT {} already open!".format(self.port))
@@ -131,36 +151,30 @@ class SerialPort:
                 cp("PORT {} now closed!".format(self.port))
             else:
                 cp("PORT {} already open!".format(self.port))
-                self.lock.release()
                 return False
         else:
             if not port:
                 cp("No PORT selected from menu!")
-                self.lock.release()
                 return False
+
         self.port = port
+        self.ser.port = self.port
         cp("OPENING PORT: {}".format(self.port))
         try:
-            self.ser = serial.Serial(port=self.port, baudrate=baud, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=time_out)
+            self.ser.open()
             self.port_open = True
             self.flush_port()
-            self.lock.release()
             cp("PORT {} now open!".format(self.port))
             return True
         except:
-            self.lock.release()
             cp("Serial Port %s is no longer available. Check connections!" % self.port)
             return False
 
-    
-
     def close_port(self):
         if self.port_open:
-            self.lock.acquire()
             cp("CLOSING PORT: {}".format(self.port))
             self.ser.close()
             self.port_open = False
-            self.lock.release()
             cp("PORT {} now closed!".format(self.port))
             return True
         else:
@@ -178,109 +192,133 @@ class SerialPort:
             cp('No serial port actively open! Connect to a serial port and resend.')
             return False
 
+class ARDUINO:
+    def __init__(self):
+        self.ser = SerialPort(baud=SER_BAUD_RATE_ARDUINO, stop_bits=serial.STOPBITS_ONE, time_out=0.1)
+        self.data = ''
+
     def send_msg(self, msg):
-        self.lock.acquire()
         msg += '\r'
         self.ser.write(msg.encode())
-        self.send_command_flag = True
         self.last_command = msg
-        self.msg_time = time.time()
-        self.lock.release()
 
     def resend_msg(self):
-        self.lock.acquire()
         self.ser.write(self.last_command.encode())
-        self.send_command_flag = True
-        self.msg_time = time.time()
-        self.lock.release()
+        self.resend_command_flag = False
 
     def RX(self):
-        # self.lock.acquire()
-        try:
-            line = self.ser.readline().strip().decode()
-        except:
-            line = ''
-        # self.lock.release()
-        return line
+        self.data = self.ser.readline().strip().decode()
 
-class GUI(SerialPort):
+    def main_thread(self, period):
+        while True:
+            if self.ser.port_open:
+                while self.ser.in_waiting:
+                    try:
+                        self.RX()
+                    except:
+                        cp("BAD DATA LINE!")
+
+            sleep(period * 0.001)
+
+class FURNACE:
+    def __init__(self):
+        self.ser = SerialPort(baud=SER_BAUD_RATE_FURNACE, stop_bits=serial.STOPBITS_TWO, time_out=0.1)
+        self.tx_msg = b''
+        self.rx_msg = b''
+        self.last_msg = b''
+        self.temp_live = ''
+        self.temp_setting = 0
+        self.temp_set_confirm = False
+        self.dwell_time = 0
+
+        # Pre-constructed commands
+        self.set_temp_cmd = '\x0201WSV1'        # Identifier: SV1 (Temperature setting)
+        self.get_temp_cmd = '\x0201RPV1'        # Idenfitier: PV1 (Process Variable: K-type thermocouple temp)
+        self.start_cmd  = '\x0201WRUN00001'     # (RUN) Start = 00001
+        self.stop_cmd   = '\x0201WRUN00000'     # (RUN) Stop = 00000
+
+        self.msg_type = READ_MESSAGE            # Message type (READ=0, WRITE=1)
+
+    def construct_msg(self, cmd, value=None):
+        msg = cmd
+        if value != None:
+            num_string = '0' * (5 - len(str(temp))) + str(temp)     # Prepend number with zeros for total of 5 characters
+            msg += num_string
+
+        # Attach ETX character
+        msg += '\x03'
+
+        # Compute BCC
+        bcc = msg[0].encode()[0]
+        for byte in msg:
+            bcc ^= byte.encode()[0]     # XOR of integer values (first element of byte_array created by encode)
+        msg += bytes([bcc]).decode()    # Attach BCC
+
+        return msg.encode()
+
+    def set_temp(self, temp):
+        self.temp_setting = temp
+        self.msg_type = WRITE_MESSAGE
+        self.tx_msg = construct_msg(self.set_temp_cmd, temp)
+        self.last_msg = self.tx_msg
+        self.ser.write(self.tx_msg)
+
+    def get_temp(self):
+        self.msg_type = READ_MESSAGE
+        self.rx_msg = construct_msg(self.get_temp_cmd)
+        self.last_msg = self.rx_msg
+        self.ser.write(self.rx_msg)
+
+    def RX(self, num_bytes):
+        response = self.ser.read(num_bytes).decode()
+        acknowledge = response[3]
+
+        # Check acknowledgement
+        if acknowledge == ACK:
+            if self.msg_type == READ_MESSAGE:
+                self.temp_live = response[7:12]
+            elif self.msg_type == WRITE_MESSAGE:
+                self.temp_set_confirm = True
+        elif acknowledge == NAK:
+            self.ser.write(self.last_msg)
+            return            
+
+    def main_thread(self, period):
+        while True:
+            if self.ser.port_open:
+                while self.ser.in_waiting:
+                    try:
+                        if self.msg_type == READ_MESSAGE:
+                            self.RX(14)
+                        elif self.msg_type == WRITE_MESSAGE:
+                            self.RX(6)
+                    except:
+                        cp("BAD DATA LINE!")
+
+            sleep(period * 0.001)
+
+class GUI:
     def __init__(self, gui_title, layout):
-        SerialPort.__init__(self)
         self.event = ''
         self.e_val = ''
         self.layout = layout
-        self.k3_fire_flag = False
-        self.start = 0
 
         # Hard coded pax labs log image as base-64
         self.pax_icon_base_64 = b'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'
         sg.set_global_icon(self.pax_icon_base_64)
-        self.window = sg.Window(gui_title, self.layout, icon=self.pax_icon_base_64, finalize=True, resizable=True)
+        self.window = sg.Window(gui_title, self.layout, finalize=True, icon=self.pax_icon_base_64, resizable=True)
 
         # Initialize LEDs
         SetLED(self.window, 'gui_status_comms','','red')
-
-        # Initialze all displayed parameters
-        # self.update_param('gui_heater_tcr'      ,   '-')
+        SetLED(self.window, 'gui_status_comms_1','','red')
 
         self.plot_file_path = ''
         self.config_file_path = 'plot_config.json'
 
-        self.tx_check_box_dict = {'tcr':[1], 'temp':[1]}
-        self.current_settings = {}        
         self.log_stat = 0
-        self.petal = 2
-
-        self.initialize_flag = False
-
-        self.heater_on_time = 10.0      # Float value in seconds for heating time
-        self.heater_off_time = 10.0     # Float value in seconds for downtime between puffs
-        self.num_puffs = 10             # Number of puffs desired
-        self.puff_counter = 0           # Puff counter
-        self.test_file_name = ''        # Desired file name
-        self.test_flag = False          # Main flag for indicating test 
-        self.test_mode_start = 0        # Value for indicating test started
-        self.test_time = 0
 
     def update_param(self, param, val):
         self.window[param].Update(value=val)
-
-    def parse_line(self, line):
-        cp(line)
-        if self.log_stat == 1:
-            fm.write_log(line)
-            now = time.time()
-
-            if '??' in line:
-                self.resend_msg()
-
-            if self.send_command_flag:
-                if (now - self.msg_time) > 0.5:
-                    self.send_command_flag = False
-                    if self.test_mode_start == 1:
-                        self.test_mode_start = 2
-                        self.send_msg('heater stream 1')
-                    elif self.test_mode_start == 2:
-                        self.test_mode_start = 0
-                        self.puff_counter += 1
-                        self.update_param('gui_test_puff_count', self.puff_counter)
-                        self.send_msg('heater ok2vape ' + str(int(self.heater_on_time * 1000)))
-
-            if self.test_flag:
-                if (now - self.test_time) > (self.heater_on_time + self.heater_off_time + 1):
-                    if self.puff_counter >= self.num_puffs:
-                        self.end_test()
-                    else:
-                        self.test_time = now
-                        self.puff_counter += 1
-                        self.update_param('gui_test_puff_count', self.puff_counter)
-                        self.send_msg('heater ok2vape ' + str(int(self.heater_on_time * 1000)))
-
-            # K3 ONLY!
-            if self.k3_fire_flag:
-                if (now - self.start) > 0.1:
-                    self.start = now
-                    self.ser.write('f'.encode())
 
     def enable_logging(self, enable):
         if enable:
@@ -292,75 +330,65 @@ class GUI(SerialPort):
             cp('Closing logfile: %s' % logfile)
             self.log_stat = 0
 
-    def start_test(self, e_val):
-        self.heater_on_time = float(e_val['gui_test_heater_on_time']) * 0.001
-        self.heater_off_time = float(e_val['gui_test_heater_off_time']) * 0.001
-        self.num_puffs = int(e_val['gui_test_number_puffs'])
-        self.test_file_name = e_val['gui_test_file_name']
-        self.puff_counter = 0
-        self.update_param('gui_test_puff_count', self.puff_counter)
-        current_logfile = fm.close_log_file()
-        cp('Closing logfile: %s' % current_logfile)
-        current_logfile = fm.create_log_file(self.test_file_name)
-        cp('New logfile created: %s' % current_logfile)
-        self.log_stat = 1
-        self.test_flag = True
-        self.test_mode_start = 2
-        self.send_command_flag = True
-        self.test_time = time.time()
-        # self.send_msg('psense enable 0')
+    def parse_line(self, line):
+        cp(line)
+        if self.log_stat == 1:
+            fm.write_log(line)
 
-    def end_test(self):
-        self.send_msg('heater stream 0')
-        sleep(1)
-        self.puff_counter = 0
-        self.update_param('gui_test_puff_count', self.puff_counter)
-        current_logfile = fm.close_log_file()
-        cp('Closing logfile: %s' % current_logfile)
-        self.log_stat = 0
-        self.test_flag = False
-        self.test_mode_start = 0
-        try:
-            old_file = current_logfile.strip(".log")
-            new_num = int(old_file.split('_')[-1]) + 1
-            new_file_name = old_file.replace(old_file[-1], str(new_num))
-            self.update_param('gui_test_file_name', new_file_name)
-        except:
-            print("File name not incremented!")
+    def start_test(self):
+        self.enable_logging(1)
 
-    def event_loop(self):
+    def end_test(self): 
+        self.enable_logging(0)
+
+    
+    def event_loop(self, gom, muff_furnace):
         # Event Loop to process "events"
         while True:
+                
             self.event, self.e_val = self.window.read()
-            # cp(self.event, self.e_val)
+
             # TIMEOUT
             if self.event == '__TIMEOUT__':
                 pass
 
-            # SERIAL COMMS
+            # SERIAL COMMS 0
             elif self.event == 'gui_comms_port_list':
-                self.port_new = self.window['gui_comms_port_list'].get()
+                gom.ser.port_new = self.e_val['gui_comms_port_list']
             elif self.event == 'gui_button_open_port':
-                if self.open_port(self.port_new):
+                if gom.ser.open_port(gom.ser.port_new):
+                    cp("Connected to Arduino!")
                     SetLED(self.window, 'gui_status_comms','green','green')
-                    self.enable_logging(1)
                     self.update_param('gui_text_comms_stat', 'OPEN')
-                    self.initialize_flag = True
             elif self.event == 'gui_button_close_port':
-                if self.close_port():
+                if gom.ser.close_port():
                     SetLED(self.window, 'gui_status_comms','red','red')
-                    self.enable_logging(0)
                     self.update_param('gui_text_comms_stat', 'CLOSED')
-
             elif self.event == 'gui_button_refresh_port':
                 cp("Refreshing Serial Ports!")
                 self.window['gui_comms_port_list'].Update(values=list_serial_ports())
-
+        
+            # SERIAL COMMS 1 (FURNACE)
+            elif self.event == 'gui_comms_port_list_1':
+                muff_furnace.ser.port_new = self.e_val['gui_comms_port_list_1']
+            elif self.event == 'gui_button_open_port_1':
+                if muff_furnace.ser.open_port(muff_furnace.ser.port_new):
+                    cp("Connected to furnace!")
+                    SetLED(self.window, 'gui_status_comms_1','green','green')
+                    self.update_param('gui_text_comms_stat_1', 'OPEN')
+            elif self.event == 'gui_button_close_port_1':
+                if muff_furnace.ser.close_port():
+                    SetLED(self.window, 'gui_status_comms_1','red','red')
+                    self.update_param('gui_text_comms_stat_1', 'CLOSED')
+            elif self.event == 'gui_button_refresh_port_1':
+                cp("Refreshing Serial Ports!")
+                self.window['gui_comms_port_list_1'].Update(values=list_serial_ports())
+            
             # DATA PROCESSING
             elif self.event == 'gui_process_data_file':
                 self.plot_file_path = self.window['gui_process_data_file'].get()
-            # elif self.event == 'gui_process_config_file':
-            #     self.config_file_path = self.window['gui_process_config_file'].get()
+            elif self.event == 'gui_process_config_file':
+                 self.config_file_path = self.window['gui_process_config_file'].get()
             elif self.event == 'gui_button_process_plot':
                 if self.plot_file_path != '':
                     if self.config_file_path != '':
@@ -377,47 +405,18 @@ class GUI(SerialPort):
                 else:
                     cp('Please choose a data and configuration file to plot!')
 
-            # CLI CONTROL
-            elif self.event == 'gui_button_heater_stream_on':
-                if self.is_port_open():
-                    self.send_msg('heater stream 1')
-            elif self.event == 'gui_button_heater_stream_off':
-                if self.is_port_open():
-                    self.send_msg('heater stream 0')
-            elif self.event == 'gui_button_psense_on':
-                if self.is_port_open():
-                    self.send_msg('psense enable 1')
-            elif self.event == 'gui_button_psense_off':
-                if self.is_port_open():
-                    self.send_msg('psense enable 0')
-            elif self.event == 'gui_button_heater_k3_on':
-                if self.is_port_open():
-                    self.k3_fire_flag = True
-                    self.start = time.time()
-                    self.ser.write('f'.encode())
-            elif self.event == 'gui_button_heater_k3_off':
-                if self.is_port_open():
-                    self.k3_fire_flag = False
-            elif self.event == 'gui_ckbox_heater_temp_send':
-                self.tx_check_box_dict['temp'][0] ^= 1
-                if self.tx_check_box_dict['temp'][0] == 1:
-                    cp("Confirmed to send Target Temp")
-                else:
-                    cp("Confirmed to NOT send Target Temp")
-            elif self.event == 'gui_button_heater_settings_ok2vape':
-                if self.is_port_open():
-                    self.send_msg('heater ok2vape ' + self.e_val['gui_ok2vape_time'])
+            # TEST CONTROL
+            elif self.event == 'gui_button_start':
+                TEMPERATURES_TESTED_AT = [int(self.e_val['temp1']), int(self.e_val['temp2']), int(self.e_val['temp3']), int(self.e_val['temp4']), int(self.e_val['temp5'])]
+                FURNACE_DWELL_TIME = [int(self.window['dwell time'].Get())]
+                self.start_test()
 
-            # TESTING MODE
-            elif self.event == 'gui_button_test_go':
-                if self.is_port_open():
-                    self.start_test(self.e_val)
-            elif self.event == 'gui_button_test_halt':
-                if self.is_port_open():
-                    self.end_test()
+            elif self.event == 'gui_button_stop':
+                self.end_test()
 
-            # ENDING
+            # CLOSE WINDOW / TERMINATE PROGRAM
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
+                self.end_test()
                 self.close_port()
                 break
 
@@ -425,29 +424,19 @@ class GUI(SerialPort):
                 
         self.window.close()
 
-def thread_comms(thread_name, period, gui):
-    while True:
-        if gui.port_open:
-            try:
-                while gui.ser.in_waiting:
-                    line = gui.RX()
-                    gui.parse_line(line)
-            except:
-                pass
-        sleep(period * 0.001)
-        # window.write_event_value(thread_name, f'count = {i}')
 
-
-
+arduino = ARDUINO()
+furnace = FURNACE()
 gui = GUI(PROJECT_TITLE, GUI_LAYOUT)
 
-threading.Thread(target=thread_comms, args=('gui_thread_comms', 10, gui), daemon=True).start()
+# Main Thread for Arduino
+threading.Thread(target=arduino.main_thread, args=(100), daemon=True).start()
 
-# Run main event loop
-gui.event_loop()
+# Main Thread for Furnace
+threading.Thread(target=furnace.main_thread, args=(100), daemon=True).start()
 
-
-
+# Run GUI main event loop thread
+gui.event_loop(arduino, furnace)
 
 # Possible themes to choose for GUI
 # ‘Black’, ‘BlueMono’, ‘BluePurple’, ‘BrightColors’, ‘BrownBlue’, ‘Dark’, ‘Dark2’, ‘DarkAmber’, ‘DarkBlack’, ‘DarkBlack1’, 
