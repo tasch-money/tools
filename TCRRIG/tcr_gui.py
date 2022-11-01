@@ -475,7 +475,7 @@ def main_test(gom, muff_furnace, tc_log, period):
     while True:
         if gom.new_data_flag:
             gom.new_data_flag = False
-            line = tc_log.get_output() + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data() # tc_log.get_output()
+            line = tc_log.get_output()# + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data() # tc_log.get_output()
             cp(line)
 
         sleep(period * 0.001)
