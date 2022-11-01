@@ -104,7 +104,7 @@ GUI_LAYOUT = [
 ]
 
 class SerialPort:
-    def __init__(self, baud=115200, stop_bits=serial.STOPBITS_ONE, time_out=0.1):
+    def __init__(self, baud, stop_bits, time_out=0.1):
         self.port = None
         self.ser = serial.Serial(port=self.port, baudrate=baud, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=stop_bits, timeout=time_out)
         self.port_new = None
@@ -169,7 +169,7 @@ class SerialPort:
 
 class ARDUINO:
     def __init__(self):
-        self.ser_port = SerialPort(baud=SER_BAUD_RATE_ARDUINO, stop_bits=serial.STOPBITS_ONE, time_out=0.1)
+        self.ser_port = SerialPort(SER_BAUD_RATE_ARDUINO, serial.STOPBITS_ONE, 0.1)
         self.comms = self.ser_port.ser
         self.data = ''
         self.new_data_flag = False
@@ -222,7 +222,7 @@ class ARDUINO:
 
 class FURNACE:
     def __init__(self):
-        self.ser_port = SerialPort(baud=SER_BAUD_RATE_FURNACE, stop_bits=serial.STOPBITS_TWO, time_out=0.1)
+        self.ser_port = SerialPort(SER_BAUD_RATE_FURNACE, serial.STOPBITS_TWO, 0.1)
         self.comms = self.ser_port.ser
         self.tx_msg = b''
         self.rx_msg = b''
@@ -250,7 +250,7 @@ class FURNACE:
         if hooked_port != '':
             self.ser_port.open_port(hooked_port)
         else:
-            cp('Arduino not detected! Check connection, then press RECONNECT')
+            cp('Furnace not detected! Check connection, then press RECONNECT')
 
     def construct_msg(self, cmd, value=None):
         msg = cmd
