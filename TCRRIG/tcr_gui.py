@@ -291,12 +291,13 @@ class FURNACE:
         self.lock.release()
 
     def request_temp(self):
-        # self.lock.acquire()
+        self.lock.acquire()
         self.msg_type = READ_MESSAGE
         self.rx_msg = self.construct_msg(self.get_temp_cmd)
         self.last_msg = self.rx_msg
+        print("Temp Request to Furnace!")
         self.comms.write(self.rx_msg)
-        # self.lock.release()
+        self.lock.release()
 
     def get_temp(self):
         self.lock.acquire()
@@ -331,6 +332,7 @@ class FURNACE:
                 self.lock.acquire()
                 while self.comms.in_waiting:
                     try:
+                        cp('HELLO')
                         if self.msg_type == READ_MESSAGE:
                             self.RX(14)
                         elif self.msg_type == WRITE_MESSAGE:
