@@ -89,6 +89,8 @@ class DI2008():
         self.log_stat = False
         self.ser_lock = threading.Lock()
         self.output_lock = threading.Lock()
+        self.discovery()
+        self.initialize()
 
     # Discover DATAQ Instruments devices and models.  Note that if multiple devices are connected, only the 
     # device discovered first is used. We leave it to you to ensure that the device is a model DI-2008
@@ -135,8 +137,13 @@ class DI2008():
             # Keep the packet size small for responsiveness
             self.send_cmd("ps 0")
 
+            self.reset_slist()
+            for i in range(8):
+                self.set_slist_item(i, 'K')
+            self.begin(1)
+
             print("")
-            print("Unit initialized! Enable channels and begin...")
+            print("TC Logger initialized!")
             print ("")
         else:
             print("Cannot call functions without unit being connected!")

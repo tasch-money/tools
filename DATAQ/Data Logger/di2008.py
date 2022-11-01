@@ -20,7 +20,6 @@ import serial
 import serial.tools.list_ports
 import time
 from file_manager import file_manager as fm
-import threading
 
 """
 Change slist tuple to vary analog channel configuration.
@@ -87,8 +86,6 @@ class DI2008():
         self.t_last = 0
         self.t_diff = 0
         self.log_stat = False
-        self.ser_lock = threading.Lock()
-        self.output_lock = threading.Lock()
 
     # Discover DATAQ Instruments devices and models.  Note that if multiple devices are connected, only the 
     # device discovered first is used. We leave it to you to ensure that the device is a model DI-2008
@@ -104,7 +101,6 @@ class DI2008():
                 hooked_port = p.device
                 break
 
-        self.ser_lock.acquire()
         if hooked_port:
             print("Found DATAQ Instruments device on",hooked_port)
             self.ser.timeout = 0
@@ -117,16 +113,12 @@ class DI2008():
             print("No DATAQ Instruments device detected! Connect a device and press CONNECT!")
             self.unit_connected = False
 
-        self.ser_lock.release()
-
         return self.unit_connected
 
     def disconnect(self):
         if self.unit_connected:
-            self.ser_lock.acquire()
             self.stop()
             self.ser.close()
-            self.ser_lock.release()
 
     def initialize(self):
         if self.unit_connected:
@@ -157,7 +149,6 @@ class DI2008():
     # Sends a passed command string after appending <cr>
     def send_cmd(self, command):
         if self.unit_connected:
-            self.ser_lock.acquire()
             self.ser.write((command + '\r').encode())
             time.sleep(.1)
             if not self.acquiring:
@@ -176,7 +167,6 @@ class DI2008():
                         if s != "":
                             print(s)
                             break
-            self.ser_lock.release()
         else:
             print("Cannot call functions without unit being connected!")
 
@@ -243,18 +233,11 @@ class DI2008():
     def log_enable(self, en):
         self.log_stat = en
 
-    def get_output(self):
-        self.output_lock.acquire()
-        rtn_str = self.output_string
-        self.output_lock.release()
-        return rtn_str
 
-    def run(self, period):
+    def run(self):
         while True:
             if self.acquiring:
-                self.ser_lock.acquire()
                 if self.ser.inWaiting():
-                    self.output_lock.acquire()
                     self.t_now = time.time()
                     self.t_diff = self.t_now - self.t_last
                     self.t_last = self.t_now
@@ -320,11 +303,7 @@ class DI2008():
                     if self.log_stat:
                         fm.write_log(self.output_string.rstrip(","))
                     # print(self.output_string.rstrip(", "))
-
-                    self.output_lock.release()
-                self.ser_lock.release()
-
-            time.sleep(period * 0.001)
+            time.sleep(0.005)
 
 FILTER_BUFF_SIZE = 32
 
