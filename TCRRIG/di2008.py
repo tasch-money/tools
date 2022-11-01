@@ -267,7 +267,7 @@ class DI2008():
                     self.t_last = self.t_now
                     self.output_string = "%f," % self.t_diff
                     while self.ser.inWaiting():   # (2 * len(self.slist))
-                        for i in range(len(self.slist) / 2):
+                        for i in range(2):
                             # The four LSBs of slist determine measurement function
                             function = self.slist[self.slist_pointer] & 0xf
                             mode_bit = self.slist[self.slist_pointer] & 0x1000
