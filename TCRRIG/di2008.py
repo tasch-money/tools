@@ -138,7 +138,7 @@ class DI2008():
             self.send_cmd("ps 0")
 
             self.reset_slist()
-            for i in range(8):
+            for i in range(4):
                 self.set_slist_item(i, 'K')
             self.begin(1)
 
