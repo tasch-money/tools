@@ -291,12 +291,12 @@ class FURNACE:
         self.lock.release()
 
     def request_temp(self):
-        self.lock.acquire()
+        # self.lock.acquire()
         self.msg_type = READ_MESSAGE
         self.rx_msg = self.construct_msg(self.get_temp_cmd)
         self.last_msg = self.rx_msg
         self.comms.write(self.rx_msg)
-        self.lock.release()
+        # self.lock.release()
 
     def get_temp(self):
         self.lock.acquire()
