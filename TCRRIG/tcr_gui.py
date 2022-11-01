@@ -306,7 +306,7 @@ class FURNACE:
         return rtn_val
 
     def RX(self, num_bytes):
-        response = self.comms.read(num_bytes)
+        response = self.comms.read(num_bytes).decode()
         print("Furnace Response: ", response)
         acknowledge = response[3]
 
