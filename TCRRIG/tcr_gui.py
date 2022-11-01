@@ -2,22 +2,26 @@ import sys, glob
 from time import sleep
 import time
 import serial
+import serial.tools.list_ports
 import threading
 import json
 import PySimpleGUI as sg
 
+import di2008
 from file_manager import file_manager as fm
 from plotting import plotter
 
 PROJECT_TITLE = 'TCR Rig V2.0'
-PROJECT_COLOR_THEME = 'TealMono'      # 'Coral'
+PROJECT_COLOR_THEME = 'DarkTanBlue'
+
+INIT_TEMP_SETTINGS = [270, 320, 370, 420, 450]
+INIT_DWELL_TIME = 3600
 
 GUI_TEXTSIZE_TITLE = 20
 GUI_TEXTSIZE_FRAME = 14
 GUI_TEXTSIZE_SUBTEXT = 12
 
 GUI_INPUTTEXT_SIZE = 12
-GUI_INPUTTEXT_COLOR = '#008B8B'   # Dark Teal
 GUI_INPUTTEXT_STYLE = 'bold'
 GUI_INPUTTEXT_JUSTIFY = 'right'
 
@@ -44,23 +48,9 @@ WRITE_MESSAGE = 1
 ACK = '\x06'    # Affirmative response about the receiving
 NAK = '\x15'    # Negative response about the receiving
 
-
-DUT = 8
-FURNACE_TEMP_TOLERANCE = 1
-FURNACE_DWELL_TIME = 600
-TEMPERATURES_TESTED_AT = [150, 200, 300, 400, 500]
-resistance_measurement = 0
-
-cmd_one = "one"
-cmd_two = "two"
-cmd_three = "thr"
-cmd_four = "fou"
-cmd_five = "fiv"
-cmd_six = "six"
-cmd_seven = "sev"
-cmd_eight = "eig"
-cmd_list = [cmd_one, cmd_two, cmd_three, cmd_four, cmd_five, cmd_six, cmd_seven, cmd_eight]
-
+USB_IDENTIFIER_ARDUINO = 'VID:PID=2341'
+USB_IDENTIFIER_FURNACE = 'VID:PID=0403'
+USB_IDENTIFIER_TCLOGGER = 'VID:PID=0683'
 
 # GLOBAL FUNCTIONS
 def LEDIndicator(key=None, radius=15):
@@ -74,59 +64,39 @@ def SetLED(window, key, fcolor, lcolor):
     graph.erase()
     graph.draw_circle((0, 0), 12, fill_color=fcolor, line_color=lcolor)
 
-def list_serial_ports():
-    if sys.platform.startswith('win'):
-        ports = ['COM%s' % (i + 1) for i in range(20)]
-    elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-        # this excludes your current terminal "/dev/tty"
-        ports = glob.glob('/dev/tty[A-Za-z]*')
-    elif sys.platform.startswith('darwin'):
-        ports = glob.glob('/dev/tty.*')
-    else:
-        raise EnvironmentError('Unsupported platform')
+def find_port(usb_identifier):
+    available_ports = list(serial.tools.list_ports.comports())
+    hooked_port = ''
 
-    result = []
-    for port in ports:
-        try:
-            s = serial.Serial(port)
-            s.close()
-            result.append(port)
-        except (OSError, serial.SerialException):
-            pass
-    return result
+    # Hooking port for given USB location
+    for p in available_ports:
+        p_hwid = p.hwid
+        if p_hwid != None:
+            if (usb_identifier in p_hwid):
+                hooked_port = p.device
+                break
 
-FRAME_COMMS_LAYOUT = [
-    [sg.Text('Serial Port:',size=(10,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=55, readonly=True, enable_events=True, key='gui_comms_port_list'),sg.Button('OPEN', key='gui_button_open_port'),sg.Button('CLOSE', key='gui_button_close_port')],
-    [sg.Text('Status:',size=(10,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms',radius=14),sg.T('',size=(10,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat'),sg.T('',size=(57,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port')],
-]
+    return hooked_port
 
-FRAME_COMMS_LAYOUT_2 = [
-    [sg.Text('Serial Port:',size=(10,1),font=GUI_FONT_MAIN),sg.Combo(list_serial_ports(), font=GUI_FONT_MAIN, size=55, readonly=True, enable_events=True, key='gui_comms_port_list_1'),sg.Button('OPEN', key='gui_button_open_port_1'),sg.Button('CLOSE', key='gui_button_close_port_1')],
-    [sg.Text('Status:',size=(10,1),font=GUI_FONT_MAIN),LEDIndicator(key='gui_status_comms_1',radius=14),sg.T('',size=(10,1),font=GUI_FONT_MAIN,key='gui_text_comms_stat_1'),sg.T('',size=(57,1)),sg.Button('REFRESH PORTS', key='gui_button_refresh_port_1')],
-]
 
 FRAME_DATA_PROCESSING_LAYOUT = [
     [sg.Text('Data File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_data_file',size=(52,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_file_browser', size=(10,1), font=GUI_FONT_MAIN),sg.Button('Plot',key='gui_button_process_plot',size=(4,1),font=GUI_FONT_MAIN)],
-    #[sg.T('', size=(1,1))],
     [sg.Text('Config File:',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_process_config_file',size=(52,1),font=GUI_FONT_MAIN, change_submits=True, disabled=True),sg.FileBrowse(key='gui_process_config_browser', size=(10,1), font=GUI_FONT_MAIN)],
 ]
 
 FRAME_TEST_SETTINGS_LAYOUT = [
-    #[sg.Text('TCR',size=(8,1),font=GUI_FONT_MAIN),sg.Input(key='gui_heater_tcr',size=(12,1), font=(GUI_TEXTFONT_ALL, GUI_INPUTTEXT_SIZE, GUI_INPUTTEXT_STYLE), justification=GUI_INPUTTEXT_JUSTIFY),sg.Text('ppm/˚C',size=(6,1),font=GUI_FONT_MAIN),sg.Checkbox('',default=True,enable_events=True,key='gui_ckbox_heater_tcr_send')], 
     [sg.Text('Temperatures Tested',size=(20,1),font=GUI_FONT_MAIN)], 
-    [sg.Spin(key = 'temp_set_1', values=[i for i in range(1, 1000)], initial_value='100', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(3,1),font=GUI_FONT_MAIN), sg.Spin(key = 'temp_set_2', values=[i for i in range(1, 1000)], initial_value='200', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp_set_3', values=[i for i in range(1, 1000)], initial_value='300', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp_set_5', values=[i for i in range(1, 1000)], initial_value='400', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN),sg.Spin(key = 'temp_set_5', values=[i for i in range(1, 1000)], initial_value='500', size=(7,5), font=GUI_FONT_MAIN), sg.Text('˚C',size=(5,1),font=GUI_FONT_MAIN)],
-    [sg.Text('Number of Devices',size=(14,1),font=GUI_FONT_MAIN),sg.Spin(values = [i for i in range(1, 9)], size=(3, 5), initial_value=8, key='num_devices', font=GUI_FONT_MAIN), sg.Text('Dwell Time (s)',size=(10,1),font=GUI_FONT_MAIN),sg.Spin(key = 'dwell time', values=[i for i in range(1, 100000)], initial_value='6000', size=(7,5), font=GUI_FONT_MAIN), sg.T('',size=(1,1))]
+    [sg.Input(key='gui_temp_set_1', default_text=str(INIT_TEMP_SETTINGS[0]), size=(7,5), font=GUI_FONT_MAIN),sg.Input(key='gui_temp_set_2', default_text=str(INIT_TEMP_SETTINGS[1]), size=(7,5), font=GUI_FONT_MAIN),sg.Input(key='gui_temp_set_3', default_text=str(INIT_TEMP_SETTINGS[2]), size=(7,5), font=GUI_FONT_MAIN),sg.Input(key='gui_temp_set_4', default_text=str(INIT_TEMP_SETTINGS[3]), size=(7,5), font=GUI_FONT_MAIN),sg.Input(key='gui_temp_set_5', default_text=str(INIT_TEMP_SETTINGS[4]), size=(7,5), font=GUI_FONT_MAIN)],
+    [sg.Text('Dwell Time (s)',size=(10,1),font=GUI_FONT_MAIN),sg.Input(key='gui_dwell_time', default_text=str(INIT_DWELL_TIME), size=(7,5), font=GUI_FONT_MAIN)]
 ]
 
 FRAME_CONSOLE_LAYOUT = [
-    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,text_color = 'LightGreen', autoscroll=True, size=(80, 12),reroute_cprint=True, write_only=True)],
+    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,text_color = 'DarkBlue', autoscroll=True, size=(80, 12),reroute_cprint=True, write_only=True)],
 ]
 
 #Main GUI Layout
 GUI_LAYOUT = [  
     [sg.Text(PROJECT_TITLE, font=GUI_FONT_TITLE, key='gui_title')],
-    [sg.Frame('ARDUINO CONNECTION', FRAME_COMMS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_serial')],
-    [sg.Frame('FURNACE CONNECTION', FRAME_COMMS_LAYOUT_2, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_serial_1')],
     [sg.Frame('DATA PROCESSING', FRAME_DATA_PROCESSING_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_data_flow_ctrl')],
     [sg.Frame('TEST SETTINGS', FRAME_TEST_SETTINGS_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_test_settings')],
     [sg.Frame('CONSOLE', FRAME_CONSOLE_LAYOUT, font=GUI_FONT_FRAME, border_width=GUI_BORDERWIDTH_FRAME, key='gui_frame_console')],
@@ -142,8 +112,10 @@ class SerialPort:
         self.last_command = ''
         self.send_command_flag = False
         self.resend_command_flag = False
+        self.lock = threading.Lock()
 
     def open_port(self, port):
+        self.lock.acquire()
         if self.port_open:
             if self.port != port:
                 cp("PORT {} already open!".format(self.port))
@@ -151,11 +123,6 @@ class SerialPort:
                 cp("PORT {} now closed!".format(self.port))
             else:
                 cp("PORT {} already open!".format(self.port))
-                return False
-        else:
-            if not port:
-                cp("No PORT selected from menu!")
-                return False
 
         self.port = port
         self.ser.port = self.port
@@ -165,19 +132,24 @@ class SerialPort:
             self.port_open = True
             self.flush_port()
             cp("PORT {} now open!".format(self.port))
+            self.lock.release()
             return True
         except:
-            cp("Serial Port %s is no longer available. Check connections!" % self.port)
+            cp("Serial Port %s is no longer available. Check connections, then press RECONNECT!" % self.port)
+            self.lock.release()
             return False
 
     def close_port(self):
+        self.lock.acquire()
         if self.port_open:
             cp("CLOSING PORT: {}".format(self.port))
             self.ser.close()
             self.port_open = False
             cp("PORT {} now closed!".format(self.port))
+            self.lock.release()
             return True
         else:
+            self.lock.release()
             cp("No PORT actively open!")
             return False
 
@@ -186,7 +158,10 @@ class SerialPort:
             self.ser.read(1)
 
     def is_port_open(self):
-        if self.port_open:
+        self.lock.acquire()
+        resp = self.port_open
+        self.lock.release()
+        if resp:
             return True
         else:
             cp('No serial port actively open! Connect to a serial port and resend.')
@@ -194,25 +169,50 @@ class SerialPort:
 
 class ARDUINO:
     def __init__(self):
-        self.ser = SerialPort(baud=SER_BAUD_RATE_ARDUINO, stop_bits=serial.STOPBITS_ONE, time_out=0.1)
+        self.ser_port = SerialPort(baud=SER_BAUD_RATE_ARDUINO, stop_bits=serial.STOPBITS_ONE, time_out=0.1)
+        self.comms = self.ser_port.ser
         self.data = ''
+        self.new_data_flag = False
+        self.lock = threading.Lock()
+        self.initialize_port(USB_IDENTIFIER_ARDUINO)
+
+    def initialize_port(self, usb_identifier):
+        hooked_port = find_port(usb_identifier)
+        if hooked_port != '':
+            self.ser_port.open_port(hooked_port)
+        else:
+            cp('Arduino not detected! Check connection, then press RECONNECT')
 
     def send_msg(self, msg):
         msg += '\r'
-        self.ser.write(msg.encode())
+        self.comms.write(msg.encode())
         self.last_command = msg
 
     def resend_msg(self):
-        self.ser.write(self.last_command.encode())
+        self.comms.write(self.last_command.encode())
         self.resend_command_flag = False
 
+    def get_data(self):
+        self.lock.acquire()
+        rtn_val = self.data
+        self.lock.release()
+        return rtn_val
+
+    def clear_data_flag(self):
+        self.lock.acquire()
+        self.new_data_flag = False
+        self.lock.release()
+
     def RX(self):
-        self.data = self.ser.readline().strip().decode()
+        self.lock.acquire()
+        self.data = self.comms.readline().strip().decode()
+        self.new_data_flag = True
+        self.lock.release()
 
     def main_thread(self, period):
         while True:
-            if self.ser.port_open:
-                while self.ser.in_waiting:
+            if self.ser_port.port_open:
+                while self.comms.in_waiting:
                     try:
                         self.RX()
                     except:
@@ -222,14 +222,18 @@ class ARDUINO:
 
 class FURNACE:
     def __init__(self):
-        self.ser = SerialPort(baud=SER_BAUD_RATE_FURNACE, stop_bits=serial.STOPBITS_TWO, time_out=0.1)
+        self.ser_port = SerialPort(baud=SER_BAUD_RATE_FURNACE, stop_bits=serial.STOPBITS_TWO, time_out=0.1)
+        self.comms = self.ser_port.ser
         self.tx_msg = b''
         self.rx_msg = b''
         self.last_msg = b''
         self.temp_live = ''
         self.temp_setting = 0
-        self.temp_set_confirm = False
-        self.dwell_time = 0
+        self.tx_handshake = True
+        self.temp_test_list = INIT_TEMP_SETTINGS
+        self.dwell_time = INIT_DWELL_TIME
+        self.setting_idx = 0
+        self.lock = threading.Lock()
 
         # Pre-constructed commands
         self.set_temp_cmd = '\x0201WSV1'        # Identifier: SV1 (Temperature setting)
@@ -238,11 +242,19 @@ class FURNACE:
         self.stop_cmd   = '\x0201WRUN00000'     # (RUN) Stop = 00000
 
         self.msg_type = READ_MESSAGE            # Message type (READ=0, WRITE=1)
+        self.initialize_port(USB_IDENTIFIER_FURNACE)
+
+    def initialize_port(self, usb_identifier):
+        hooked_port = find_port(usb_identifier)
+        if hooked_port != '':
+            self.ser_port.open_port(hooked_port)
+        else:
+            cp('Arduino not detected! Check connection, then press RECONNECT')
 
     def construct_msg(self, cmd, value=None):
         msg = cmd
         if value != None:
-            num_string = '0' * (5 - len(str(temp))) + str(temp)     # Prepend number with zeros for total of 5 characters
+            num_string = '0' * (5 - len(str(value))) + str(value)     # Prepend number with zeros for total of 5 characters
             msg += num_string
 
         # Attach ETX character
@@ -256,21 +268,43 @@ class FURNACE:
 
         return msg.encode()
 
+    def run(self):
+        self.lock.acquire()
+        self.msg_type = WRITE_MESSAGE
+        self.tx_msg = self.construct_msg(self.start_cmd)
+        self.last_msg = self.tx_msg
+        self.tx_handshake = False
+        print("Run request sent to Furnace!")
+        self.comms.write(self.tx_msg)
+        self.lock.release()
+
     def set_temp(self, temp):
+        self.lock.acquire()
         self.temp_setting = temp
         self.msg_type = WRITE_MESSAGE
-        self.tx_msg = construct_msg(self.set_temp_cmd, temp)
+        self.tx_msg = self.construct_msg(self.set_temp_cmd, temp)
         self.last_msg = self.tx_msg
-        self.ser.write(self.tx_msg)
+        self.tx_handshake = False
+        print("Set Furnace temp to %dC request sent" % self.temp_setting)
+        self.comms.write(self.tx_msg)
+        self.lock.release()
+
+    def request_temp(self):
+        self.lock.acquire()
+        self.msg_type = READ_MESSAGE
+        self.rx_msg = self.construct_msg(self.get_temp_cmd)
+        self.last_msg = self.rx_msg
+        self.comms.write(self.rx_msg)
+        self.lock.release()
 
     def get_temp(self):
-        self.msg_type = READ_MESSAGE
-        self.rx_msg = construct_msg(self.get_temp_cmd)
-        self.last_msg = self.rx_msg
-        self.ser.write(self.rx_msg)
+        self.lock.acquire()
+        rtn_val = self.temp_live
+        self.lock.release()
+        return rtn_val
 
     def RX(self, num_bytes):
-        response = self.ser.read(num_bytes).decode()
+        response = self.comms.read(num_bytes).decode()
         acknowledge = response[3]
 
         # Check acknowledgement
@@ -278,15 +312,20 @@ class FURNACE:
             if self.msg_type == READ_MESSAGE:
                 self.temp_live = response[7:12]
             elif self.msg_type == WRITE_MESSAGE:
-                self.temp_set_confirm = True
+                self.tx_handshake = True
         elif acknowledge == NAK:
-            self.ser.write(self.last_msg)
-            return            
+            if self.msg_type == READ_MESSAGE:
+                print('NAK - READ MESSAGE')
+            elif self.msg_type == WRITE_MESSAGE:
+                print('NAK - WRITE MESSAGE')
+                self.tx_handshake = False
+                self.comms.write(self.last_msg)
 
     def main_thread(self, period):
         while True:
-            if self.ser.port_open:
-                while self.ser.in_waiting:
+            if self.ser_port.port_open:
+                self.lock.acquire()
+                while self.comms.in_waiting:
                     try:
                         if self.msg_type == READ_MESSAGE:
                             self.RX(14)
@@ -294,6 +333,7 @@ class FURNACE:
                             self.RX(6)
                     except:
                         cp("BAD DATA LINE!")
+                self.lock.release()
 
             sleep(period * 0.001)
 
@@ -309,13 +349,16 @@ class GUI:
         self.window = sg.Window(gui_title, self.layout, finalize=True, icon=self.pax_icon_base_64, resizable=True)
 
         # Initialize LEDs
-        SetLED(self.window, 'gui_status_comms','','red')
-        SetLED(self.window, 'gui_status_comms_1','','red')
+        # SetLED(self.window, 'gui_status_comms','','red')
+        # SetLED(self.window, 'gui_status_comms_1','','red')
 
         self.plot_file_path = ''
         self.config_file_path = 'plot_config.json'
 
+        self.output = ''
         self.log_stat = 0
+        self.start_test_flag = False
+        self.test_timer = 0
 
     def update_param(self, param, val):
         self.window[param].Update(value=val)
@@ -327,7 +370,10 @@ class GUI:
             self.log_stat = 1
         else:
             logfile = fm.close_log_file()
-            cp('Closing logfile: %s' % logfile)
+            if logfile == '':
+                cp('No active log file open!')
+            else:
+                cp('Closing logfile: %s' % logfile)
             self.log_stat = 0
 
     def parse_line(self, line):
@@ -340,9 +386,9 @@ class GUI:
 
     def end_test(self): 
         self.enable_logging(0)
-
+        self.start_test_flag = False
     
-    def event_loop(self, gom, muff_furnace):
+    def event_loop(self, gom, muff_furnace, tc_log):
         # Event Loop to process "events"
         while True:
                 
@@ -351,38 +397,6 @@ class GUI:
             # TIMEOUT
             if self.event == '__TIMEOUT__':
                 pass
-
-            # SERIAL COMMS 0
-            elif self.event == 'gui_comms_port_list':
-                gom.ser.port_new = self.e_val['gui_comms_port_list']
-            elif self.event == 'gui_button_open_port':
-                if gom.ser.open_port(gom.ser.port_new):
-                    cp("Connected to Arduino!")
-                    SetLED(self.window, 'gui_status_comms','green','green')
-                    self.update_param('gui_text_comms_stat', 'OPEN')
-            elif self.event == 'gui_button_close_port':
-                if gom.ser.close_port():
-                    SetLED(self.window, 'gui_status_comms','red','red')
-                    self.update_param('gui_text_comms_stat', 'CLOSED')
-            elif self.event == 'gui_button_refresh_port':
-                cp("Refreshing Serial Ports!")
-                self.window['gui_comms_port_list'].Update(values=list_serial_ports())
-        
-            # SERIAL COMMS 1 (FURNACE)
-            elif self.event == 'gui_comms_port_list_1':
-                muff_furnace.ser.port_new = self.e_val['gui_comms_port_list_1']
-            elif self.event == 'gui_button_open_port_1':
-                if muff_furnace.ser.open_port(muff_furnace.ser.port_new):
-                    cp("Connected to furnace!")
-                    SetLED(self.window, 'gui_status_comms_1','green','green')
-                    self.update_param('gui_text_comms_stat_1', 'OPEN')
-            elif self.event == 'gui_button_close_port_1':
-                if muff_furnace.ser.close_port():
-                    SetLED(self.window, 'gui_status_comms_1','red','red')
-                    self.update_param('gui_text_comms_stat_1', 'CLOSED')
-            elif self.event == 'gui_button_refresh_port_1':
-                cp("Refreshing Serial Ports!")
-                self.window['gui_comms_port_list_1'].Update(values=list_serial_ports())
             
             # DATA PROCESSING
             elif self.event == 'gui_process_data_file':
@@ -407,9 +421,22 @@ class GUI:
 
             # TEST CONTROL
             elif self.event == 'gui_button_start':
-                TEMPERATURES_TESTED_AT = [int(self.e_val['temp1']), int(self.e_val['temp2']), int(self.e_val['temp3']), int(self.e_val['temp4']), int(self.e_val['temp5'])]
-                FURNACE_DWELL_TIME = [int(self.window['dwell time'].Get())]
-                self.start_test()
+                self.enable_logging(1)
+                for i in range(len(muff_furnace.temp_test_list)):
+                    temp_str = 'gui_temp_set_%d' % (i+1)
+                    muff_furnace.temp_test_list[i] = int(self.e_val[temp_str])
+                muff_furnace.dwell_time = int(self.e_val['gui_dwell_time'])
+                cp("Dwell time at temperature setpoint: %d" % muff_furnace.dwell_time)
+                muff_furnace.setting_idx = 0
+                muff_furnace.set_temp(muff_furnace.temp_test_list[muff_furnace.setting_idx])
+                # while not muff_furnace.tx_handshake:
+                #     sleep(0.1)
+                muff_furnace.run()
+                # while not muff_furnace.tx_handshake:
+                #     sleep(0.1)
+                self.start_test_flag = True
+                self.test_timer = time.time()
+                cp("TEST STARTED SUCCESSFULLY!")
 
             elif self.event == 'gui_button_stop':
                 self.end_test()
@@ -417,26 +444,54 @@ class GUI:
             # CLOSE WINDOW / TERMINATE PROGRAM
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
                 self.end_test()
-                self.close_port()
+                gom.ser_port.close_port()
+                muff_furnace.ser_port.close_port()
                 break
+
+            # Main Test Execution
+            # if self.start_test_flag:
+            #     now = time.time()
+            #     if (now - self.test_timer) > muff_furnace.dwell_time:
+            #         self.test_timer = now
+            # else:
+            #     if arduino.new_data_flag:
+            #         arduino.new_data_flag = False
+            #         self.output = tc_log.get_output + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + arduino.get_data()
+            #         self.parse_line(self.output)
 
             sleep(0.1)
                 
         self.window.close()
 
+def main_test(gom, muff_furnace, tc_log, period):
+    while True:
+        if gom.new_data_flag:
+            gom.new_data_flag = False
+            line = tc_log.get_output() + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data()
+            cp(line)
 
+        sleep(period * 0.001)
+
+
+gui = GUI(PROJECT_TITLE, GUI_LAYOUT)
 arduino = ARDUINO()
 furnace = FURNACE()
-gui = GUI(PROJECT_TITLE, GUI_LAYOUT)
+tc_logger = di2008.DI2008()
 
 # Main Thread for Arduino
-threading.Thread(target=arduino.main_thread, args=(100), daemon=True).start()
+arduino_th = threading.Thread(target=arduino.main_thread, args=[100], daemon=True).start()
 
 # Main Thread for Furnace
-threading.Thread(target=furnace.main_thread, args=(100), daemon=True).start()
+furnace_th = threading.Thread(target=furnace.main_thread, args=[100], daemon=True).start()
+
+# Main Thread for TC Logger
+tclogger_th = threading.Thread(target=tc_logger.run, args=[100], daemon=True).start()
+
+# Main Thread for Test
+test_th = threading.Thread(target=main_test, args=[arduino, furnace, tc_logger, 100], daemon=True).start()
 
 # Run GUI main event loop thread
-gui.event_loop(arduino, furnace)
+gui_th = gui.event_loop(arduino, furnace, tc_logger)
 
 # Possible themes to choose for GUI
 # ‘Black’, ‘BlueMono’, ‘BluePurple’, ‘BrightColors’, ‘BrownBlue’, ‘Dark’, ‘Dark2’, ‘DarkAmber’, ‘DarkBlack’, ‘DarkBlack1’, 

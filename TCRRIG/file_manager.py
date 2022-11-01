@@ -53,7 +53,7 @@ class FILE_MANAGER():
         try:
             self.log.close()
         except Exception as e:
-            pass
+            self.log_file = ''
         self.lock.release()
         return self.log_file
 
