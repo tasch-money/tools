@@ -262,7 +262,7 @@ class FURNACE:
         msg += '\x03'
 
         # Compute BCC
-        bcc = msg[0].encode()[0]
+        bcc = 0
         for byte in msg:
             bcc ^= byte.encode()[0]     # XOR of integer values (first element of byte_array created by encode)
         msg += bytes([bcc]).decode()    # Attach BCC
