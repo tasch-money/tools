@@ -233,6 +233,7 @@ class FURNACE:
         self.temp_test_list = INIT_TEMP_SETTINGS
         self.dwell_time = INIT_DWELL_TIME
         self.setting_idx = 0
+        self.read_temp_timer = time.time()
         self.lock = threading.Lock()
 
         # Pre-constructed commands
@@ -323,6 +324,9 @@ class FURNACE:
 
     def main_thread(self, period):
         while True:
+            if (time.time() - self.read_temp_timer) > 2.0:
+                self.read_temp_timer = time.time()
+                self.request_temp()              
             if self.ser_port.port_open:
                 self.lock.acquire()
                 while self.comms.in_waiting:
@@ -467,7 +471,7 @@ def main_test(gom, muff_furnace, tc_log, period):
     while True:
         if gom.new_data_flag:
             gom.new_data_flag = False
-            line = tc_log.get_output() + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data()
+            line = str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data() # tc_log.get_output()
             cp(line)
 
         sleep(period * 0.001)
