@@ -267,7 +267,7 @@ class DI2008():
                     self.t_last = self.t_now
                     self.output_string = "%f," % self.t_diff
                     while self.ser.inWaiting():   # (2 * len(self.slist))
-                        for i in range(len(self.slist)):
+                        for i in range(len(self.slist) / 2):
                             # The four LSBs of slist determine measurement function
                             function = self.slist[self.slist_pointer] & 0xf
                             mode_bit = self.slist[self.slist_pointer] & 0x1000
@@ -279,7 +279,7 @@ class DI2008():
                             if (function < 8) and (not(mode_bit)):
                                 # Working with a Voltage input channel. Scale accordingly.
                                 result = self.range_table[self.slist_pointer] * int.from_bytes(new_bytes, byteorder='little', signed=True) / 32768
-                                self.output_string = self.output_string + "{: 3.3f}, ".format(result)
+                                self.output_string = self.output_string + "{: 3.3f},".format(result)
                             elif (function < 8) and (mode_bit):
                                 """
                                 Working with a TC channel.

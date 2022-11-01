@@ -333,7 +333,6 @@ class FURNACE:
                 self.lock.acquire()
                 while self.comms.in_waiting:
                     try:
-                        cp('HELLO')
                         if self.msg_type == READ_MESSAGE:
                             self.RX(14)
                         elif self.msg_type == WRITE_MESSAGE:
