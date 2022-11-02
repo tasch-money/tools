@@ -319,7 +319,7 @@ class FURNACE:
 
     def RX(self, num_bytes):
         response = self.comms.read(num_bytes).decode()
-        # print("Furnace Response: ", response)
+        print("Furnace Response: ", response.encode())
         acknowledge = response[3]
 
         # Check acknowledgement
@@ -468,11 +468,11 @@ def main_test(gom, muff_furnace, tc_log, period):
                     cp('TEST FINISHED!')
                 else:
                     muff_furnace.set_temp(muff_furnace.temp_test_list[muff_furnace.setting_idx])
-                    while not muff_furnace.tx_handshake:
-                        sleep(0.1)
-                    muff_furnace.run()
-                    while not muff_furnace.tx_handshake:
-                        sleep(0.1)
+                    # while not muff_furnace.tx_handshake:
+                    #     sleep(0.1)
+                    # muff_furnace.run()
+                    # while not muff_furnace.tx_handshake:
+                    #     sleep(0.1)
 
         sleep(period * 0.001)
 
