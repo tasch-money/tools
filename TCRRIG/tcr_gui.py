@@ -374,28 +374,9 @@ class GUI:
         self.config_file_path = 'plot_config.json'
 
         self.output = ''
-        self.log_stat = 0
 
     def update_param(self, param, val):
         self.window[param].Update(value=val)
-
-    def enable_logging(self, enable):
-        if enable:
-            logfile = fm.create_log_file()
-            cp('New logfile created: %s' % logfile)
-            self.log_stat = 1
-        else:
-            logfile = fm.close_log_file()
-            if logfile == '':
-                cp('No active log file open!')
-            else:
-                cp('Closing logfile: %s' % logfile)
-            self.log_stat = 0
-
-    def parse_line(self, line):
-        cp(line)
-        if self.log_stat == 1:
-            fm.write_log(line)
     
     def event_loop(self, gom, muff_furnace, tc_log):
         # Event Loop to process "events"
@@ -430,7 +411,7 @@ class GUI:
 
             # TEST CONTROL
             elif self.event == 'gui_button_start':
-                self.enable_logging(1)
+                enable_logging(1)
                 for i in range(len(muff_furnace.temp_test_list)):
                     temp_str = 'gui_temp_set_%d' % (i+1)
                     muff_furnace.temp_test_list[i] = int(self.e_val[temp_str])
@@ -448,7 +429,7 @@ class GUI:
                 cp("TEST STARTED SUCCESSFULLY!")
 
             elif self.event == 'gui_button_stop':
-                self.enable_logging(0)
+                enable_logging(0)
                 muff_furnace.setting_idx = 0
                 muff_furnace.start_test_flag = False
                 muff_furnace.halt()
@@ -471,8 +452,7 @@ def main_test(gom, muff_furnace, tc_log, period):
         if gom.new_data_flag:
             gom.new_data_flag = False
             line = tc_log.get_output() + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data() # tc_log.get_output()
-            # cp(line)
-            print(line)
+            parse_line(line)
 
         if muff_furnace.start_test_flag:
             now = time.time()
@@ -493,7 +473,26 @@ def main_test(gom, muff_furnace, tc_log, period):
 
         sleep(period * 0.001)
 
+def enable_logging(enable):
+    global log_stat
+    if enable:
+        logfile = fm.create_log_file()
+        cp('New logfile created: %s' % logfile)
+        log_stat = 1
+    else:
+        logfile = fm.close_log_file()
+        if logfile == '':
+            cp('No active log file open!')
+        else:
+            cp('Closing logfile: %s' % logfile)
+        log_stat = 0
 
+def parse_line(line):
+    global log_stat
+    if log_stat == 1:
+        fm.write_log(line)
+
+log_stat = 0
 gui = GUI(PROJECT_TITLE, GUI_LAYOUT)
 arduino = ARDUINO()
 furnace = FURNACE()

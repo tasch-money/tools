@@ -39,7 +39,7 @@ class FILE_MANAGER():
         
         # Open logfile and write header
         self.log = open(self.log_directory + self.log_file, "w")
-        self.log.write("DATA LOG: PAX ERA LIFE\r")
+        self.log.write("DATA LOG: TCR RIG\r")
         self.log.write("DATE: %04d-%02d-%02d\r" % (now.year, now.month, now.day))
         self.log.write("TIME: %02d:%02d:%02d\r\n\n" % (now.hour, now.minute, now.second))
         self.log.flush()
