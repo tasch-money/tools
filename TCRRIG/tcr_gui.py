@@ -279,6 +279,16 @@ class FURNACE:
         self.comms.write(self.tx_msg)
         self.lock.release()
 
+    def halt(self):
+        self.lock.acquire()
+        self.msg_type = WRITE_MESSAGE
+        self.tx_msg = self.construct_msg(self.stop_cmd)
+        self.last_msg = self.tx_msg
+        self.tx_handshake = False
+        print("STOP request sent to Furnace!")
+        self.comms.write(self.tx_msg)
+        self.lock.release()
+
     def set_temp(self, temp):
         self.lock.acquire()
         self.temp_setting = temp
@@ -386,13 +396,6 @@ class GUI:
         cp(line)
         if self.log_stat == 1:
             fm.write_log(line)
-
-    def start_test(self):
-        self.enable_logging(1)
-
-    def end_test(self): 
-        self.enable_logging(0)
-        self.start_test_flag = False
     
     def event_loop(self, gom, muff_furnace, tc_log):
         # Event Loop to process "events"
@@ -435,17 +438,17 @@ class GUI:
                 cp("Dwell time at temperature setpoint: %d" % muff_furnace.dwell_time)
                 muff_furnace.setting_idx = 0
                 muff_furnace.set_temp(muff_furnace.temp_test_list[muff_furnace.setting_idx])
-                # while not muff_furnace.tx_handshake:
-                #     sleep(0.1)
+                while not muff_furnace.tx_handshake:
+                    sleep(0.1)
                 muff_furnace.run()
-                # while not muff_furnace.tx_handshake:
-                #     sleep(0.1)
-                self.start_test_flag = True
-                self.test_timer = time.time()
+                while not muff_furnace.tx_handshake:
+                    sleep(0.1)
+                muff_furnace.start_test_flag = True
+                muff_furnace.test_timer = time.time()
                 cp("TEST STARTED SUCCESSFULLY!")
 
             elif self.event == 'gui_button_stop':
-                self.end_test()
+                self.enable_logging(0)
 
             # CLOSE WINDOW / TERMINATE PROGRAM
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
@@ -455,17 +458,6 @@ class GUI:
                 tc_log.disconnect()
                 break
 
-            # Main Test Execution
-            # if self.start_test_flag:
-            #     now = time.time()
-            #     if (now - self.test_timer) > muff_furnace.dwell_time:
-            #         self.test_timer = now
-            # else:
-            #     if arduino.new_data_flag:
-            #         arduino.new_data_flag = False
-            #         self.output = tc_log.get_output + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + arduino.get_data()
-            #         self.parse_line(self.output)
-
             sleep(0.1)
                 
         self.window.close()
@@ -474,8 +466,25 @@ def main_test(gom, muff_furnace, tc_log, period):
     while True:
         if gom.new_data_flag:
             gom.new_data_flag = False
-            line = tc_log.get_output()# + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data() # tc_log.get_output()
+            line = tc_log.get_output() + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data() # tc_log.get_output()
             cp(line)
+
+        if muff_furnace.start_test_flag:
+            now = time.time()
+            if (now - muff_furnace.test_timer) > muff_furnace.dwell_time:
+                muff_furnace.test_timer = now
+                muff_furnace.setting_idx += 1
+                if muff_furnace.setting_idx >= len(muff_furnace.temp_test_list):
+                    muff_furnace.start_test_flag = False
+                    muff_furnace.halt()
+                    cp('TEST FINISHED!')
+                else:
+                    muff_furnace.set_temp(muff_furnace.temp_test_list[muff_furnace.setting_idx])
+                    while not muff_furnace.tx_handshake:
+                        sleep(0.1)
+                    muff_furnace.run()
+                    while not muff_furnace.tx_handshake:
+                        sleep(0.1)
 
         sleep(period * 0.001)
 

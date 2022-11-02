@@ -305,7 +305,7 @@ class DI2008():
                                     tc_type = tc_type >> 8
                                     self.temperature[tc_chan] = TC_SLOPE[tc_type] * result + TC_OFFSET[tc_type]
                                     self.temp_filt[tc_chan].moving_avg(self.temperature[tc_chan])
-                                    self.output_string = self.output_string + "{: 3.3f},".format(self.temperature[tc_chan])
+                                    self.output_string = self.output_string + "{: 3.3f},".format(self.temp_filt[tc_chan].result)
 
                             elif function == 8:
                                 # Working with the Digital input channel 
