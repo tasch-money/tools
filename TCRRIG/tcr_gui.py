@@ -91,7 +91,7 @@ FRAME_TEST_SETTINGS_LAYOUT = [
 ]
 
 FRAME_CONSOLE_LAYOUT = [
-    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,text_color = 'DarkBlue', autoscroll=True, size=(80, 12),reroute_cprint=True, write_only=True)],
+    [sg.Multiline(key='gui_cons_output',font=GUI_FONT_MAIN,text_color = 'DarkBlue', autoscroll=True, size=(100, 12),reroute_cprint=True, write_only=True)],
 ]
 
 #Main GUI Layout
