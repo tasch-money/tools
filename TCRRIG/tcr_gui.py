@@ -492,6 +492,7 @@ def enable_logging(enable):
 
 def parse_line(line):
     global log_stat
+    print(line)
     if log_stat == 1:
         fm.write_log(line)
 
