@@ -307,7 +307,7 @@ class FURNACE:
         self.msg_type = READ_MESSAGE
         self.rx_msg = self.construct_msg(self.get_temp_cmd)
         self.last_msg = self.rx_msg
-        print("Temp Request to Furnace:", self.rx_msg)
+        # print("Temp Request to Furnace:", self.rx_msg)
         self.comms.write(self.rx_msg)
         self.lock.release()
 
@@ -319,7 +319,7 @@ class FURNACE:
 
     def RX(self, num_bytes):
         response = self.comms.read(num_bytes).decode()
-        print("Furnace Response: ", response)
+        # print("Furnace Response: ", response)
         acknowledge = response[3]
 
         # Check acknowledgement
@@ -467,7 +467,8 @@ def main_test(gom, muff_furnace, tc_log, period):
         if gom.new_data_flag:
             gom.new_data_flag = False
             line = tc_log.get_output() + str(muff_furnace.temp_setting) + ',' + muff_furnace.get_temp() + ',' + gom.get_data() # tc_log.get_output()
-            cp(line)
+            # cp(line)
+            print(line)
 
         if muff_furnace.start_test_flag:
             now = time.time()
