@@ -449,6 +449,10 @@ class GUI:
 
             elif self.event == 'gui_button_stop':
                 self.enable_logging(0)
+                muff_furnace.setting_idx = 0
+                muff_furnace.start_test_flag = False
+                muff_furnace.halt()
+                cp('TEST FINISHED!')
 
             # CLOSE WINDOW / TERMINATE PROGRAM
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
