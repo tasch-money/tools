@@ -437,7 +437,10 @@ class GUI:
 
             # CLOSE WINDOW / TERMINATE PROGRAM
             elif self.event == sg.WIN_CLOSED or self.event == 'gui_button_exit':
-                self.end_test()
+                enable_logging(0)
+                muff_furnace.setting_idx = 0
+                muff_furnace.start_test_flag = False
+                muff_furnace.halt()
                 gom.ser_port.close_port()
                 muff_furnace.ser_port.close_port()
                 tc_log.disconnect()
