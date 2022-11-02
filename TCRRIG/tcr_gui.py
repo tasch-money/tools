@@ -233,6 +233,8 @@ class FURNACE:
         self.temp_test_list = INIT_TEMP_SETTINGS
         self.dwell_time = INIT_DWELL_TIME
         self.setting_idx = 0
+        self.start_test_flag = False
+        self.test_timer = 0
         self.read_temp_timer = time.time()
         self.lock = threading.Lock()
 
@@ -373,8 +375,6 @@ class GUI:
 
         self.output = ''
         self.log_stat = 0
-        self.start_test_flag = False
-        self.test_timer = 0
 
     def update_param(self, param, val):
         self.window[param].Update(value=val)
