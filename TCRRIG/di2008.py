@@ -255,9 +255,12 @@ class DI2008():
     def get_output(self):
         self.output_lock.acquire()
         temp_list = self.output_string.split(',')
-        rtn_str = ''
-        for i in range(NUMBER_TC_CHANNELS):
-            rtn_str += temp_list[i] + ','
+        if len(temp_list) >= NUMBER_TC_CHANNELS:
+            rtn_str = ''
+            for i in range(len(self.slist)):
+                rtn_str += temp_list[i] + ','
+        else:
+            rtn_str = ''
         self.output_lock.release()
         return rtn_str
 
