@@ -277,7 +277,7 @@ class FURNACE:
         self.tx_msg = self.construct_msg(self.start_cmd)
         self.last_msg = self.tx_msg
         self.tx_handshake = False
-        print("Run request sent to Furnace!")
+        cp("Run request sent to Furnace!")
         self.comms.write(self.tx_msg)
         self.lock.release()
 
@@ -287,7 +287,7 @@ class FURNACE:
         self.tx_msg = self.construct_msg(self.stop_cmd)
         self.last_msg = self.tx_msg
         self.tx_handshake = False
-        print("STOP request sent to Furnace!")
+        cp("STOP request sent to Furnace!")
         self.comms.write(self.tx_msg)
         self.lock.release()
 
@@ -298,7 +298,7 @@ class FURNACE:
         self.tx_msg = self.construct_msg(self.set_temp_cmd, temp)
         self.last_msg = self.tx_msg
         self.tx_handshake = False
-        print("Set Furnace temp to %dC request sent" % self.temp_setting)
+        cp("Set Furnace temp to %dC request sent" % self.temp_setting)
         self.comms.write(self.tx_msg)
         self.lock.release()
 
@@ -307,7 +307,7 @@ class FURNACE:
         self.msg_type = READ_MESSAGE
         self.rx_msg = self.construct_msg(self.get_temp_cmd)
         self.last_msg = self.rx_msg
-        # print("Temp Request to Furnace:", self.rx_msg)
+        # cp("Temp Request to Furnace:", self.rx_msg)
         self.comms.write(self.rx_msg)
         self.lock.release()
 
@@ -319,7 +319,7 @@ class FURNACE:
 
     def RX(self, num_bytes):
         response = self.comms.read(num_bytes).decode()
-        print("Furnace Response: ", response.encode())
+        # cp("Furnace Response: ", response.encode())
         acknowledge = response[3]
 
         # Check acknowledgement
@@ -330,17 +330,18 @@ class FURNACE:
                 self.tx_handshake = True
         elif acknowledge == NAK:
             if self.msg_type == READ_MESSAGE:
-                print('NAK - READ MESSAGE')
+                cp('NAK - READ MESSAGE')
             elif self.msg_type == WRITE_MESSAGE:
-                print('NAK - WRITE MESSAGE')
+                cp('NAK - WRITE MESSAGE')
                 self.tx_handshake = False
                 self.comms.write(self.last_msg)
 
     def main_thread(self, period):
         while True:
-            if (time.time() - self.read_temp_timer) > 2.0:
-                self.read_temp_timer = time.time()
-                self.request_temp()              
+            now = time.time()
+            if (now - self.read_temp_timer) > 2.0:
+                self.read_temp_timer = now
+                self.request_temp()    
             if self.ser_port.port_open:
                 self.lock.acquire()
                 while self.comms.in_waiting:
@@ -464,15 +465,11 @@ def main_test(gom, muff_furnace, tc_log, period):
                 muff_furnace.setting_idx += 1
                 if muff_furnace.setting_idx >= len(muff_furnace.temp_test_list):
                     muff_furnace.start_test_flag = False
+                    muff_furnace.temp_setting = 0
                     muff_furnace.halt()
                     cp('TEST FINISHED!')
                 else:
                     muff_furnace.set_temp(muff_furnace.temp_test_list[muff_furnace.setting_idx])
-                    # while not muff_furnace.tx_handshake:
-                    #     sleep(0.1)
-                    # muff_furnace.run()
-                    # while not muff_furnace.tx_handshake:
-                    #     sleep(0.1)
 
         sleep(period * 0.001)
 
