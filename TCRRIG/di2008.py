@@ -22,6 +22,8 @@ import time
 from file_manager import file_manager as fm
 import threading
 
+NUMBER_TC_CHANNELS = 4
+
 """
 Change slist tuple to vary analog channel configuration.
 Refer to the protocol for details.
@@ -138,7 +140,7 @@ class DI2008():
             self.send_cmd("ps 0")
 
             self.reset_slist()
-            for i in range(4):
+            for i in range(NUMBER_TC_CHANNELS):
                 self.set_slist_item(i, 'K')
             self.begin(1)
 
@@ -252,7 +254,10 @@ class DI2008():
 
     def get_output(self):
         self.output_lock.acquire()
-        rtn_str = self.output_string
+        temp_list = self.output_string.split(',')
+        rtn_str = ''
+        for i in range(NUMBER_TC_CHANNELS):
+            rtn_str += temp_list[i] + ','
         self.output_lock.release()
         return rtn_str
 
@@ -265,9 +270,10 @@ class DI2008():
                     self.t_now = time.time()
                     self.t_diff = self.t_now - self.t_last
                     self.t_last = self.t_now
-                    self.output_string = "%f," % self.t_diff
+                    # self.output_string = "%f," % self.t_diff
+                    self.output_string = ''
                     while self.ser.inWaiting():   # (2 * len(self.slist))
-                        for i in range(2):
+                        for i in range(len(self.slist)):
                             # The four LSBs of slist determine measurement function
                             function = self.slist[self.slist_pointer] & 0xf
                             mode_bit = self.slist[self.slist_pointer] & 0x1000
