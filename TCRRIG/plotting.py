@@ -80,7 +80,7 @@ class PLOTTER:
 				for i in range(len(r_lines)):
 					temp_line = r_lines[i].split(',')
 					print(temp_line)
-					if len(temp_line) == 9:
+					if len(temp_line) == 14:
 						temp_list = [float(j) for j in temp_line]
 							
 						df_data_lines.append(temp_list)
@@ -93,9 +93,9 @@ class PLOTTER:
 				#try:
 				self.df = pd.DataFrame(df_data_lines, columns=self.headers[:len(self.config["DATA_HEADERS"].keys())])
 				self.df = self.df.dropna()
-				self.df['time_stamp'] = range(0, len(self.df))
-				self.df['time_stamp'] = self.sample_time * self.df['time_stamp']
-				print(self.df)
+				# self.df['time_stamp'] = range(0, len(self.df))
+				# self.df['time_stamp'] = self.sample_time * self.df['time_stamp']
+				# print(self.df)
 				#self.run_df_calcs()
 				#print(self.df)
 				# except:
@@ -128,17 +128,18 @@ class PLOTTER:
 				fig, ax = plt.subplots(num_sub_plots, sharex=True)
 				fig.suptitle(v['title'] + " - TCR = %dppm/˚C" % self.tcr)
 				for i in range(num_sub_plots):
-					x = self.df['time_stamp']
-					x_label = 'Time (s)'
+					# x = self.df['time_stamp']
+					# x_label = 'Time (s)'
+					x_label = 'Sample'
 					num_traces = len(v['subplot%d' % (i+1)])
 					for trace in v['subplot%d' % (i+1)]:
 						y = self.df[self.headers[trace - 1]]
 						if num_sub_plots > 1:
-							ax[i].plot(x, y, label=self.headers[trace - 1])
+							ax[i].plot(y, label=self.headers[trace - 1])
 							ax[i].set_ylabel(self.hlabels[trace - 1])
 							ax[i].legend(loc='upper right')
 						else:
-							ax.plot(x, y, label=self.headers[trace - 1])
+							ax.plot(y, label=self.headers[trace - 1])
 							ax.set_ylabel(self.hlabels[trace - 1])
 							ax.legend(loc='upper right')
 				plt.xlabel(x_label)

@@ -1,35 +1,42 @@
 {
 	"DATA_HEADERS":{
-		"1": "r_dut_1",
-		"2": "r_dut_2",
-		"3": "r_dut_3",
-		"4": "r_dut_4",
-		"5": "r_dut_5",
-		"6": "r_dut_6",
-		"7": "r_dut_7",
-		"8": "r_dut_8",
-		"9": "furnace_temp"
-	},
-
-	"CALCULATIONS":{
+		"1": "tc_1",
+		"2": "tc_2",
+		"3": "tc_3",
+		"4": "tc_4",
+		"5": "furnace_setting",
+		"6": "furnace_temp",
+		"7": "r_dut_1",
+		"8": "r_dut_2",
+		"9": "r_dut_3",
+		"10": "r_dut_4",
+		"11": "r_dut_5",
+		"12": "r_dut_6",
+		"13": "r_dut_7",
+		"14": "r_dut_8"
 	},
 
 	"HEADERS_LABELS":{
-		"1": "DUT1 Resistance (Ω)",
-		"2": "DUT2 Resistance (Ω)",
-		"3": "DUT3 Resistance (Ω)",
-		"4": "DUT4 Resistance (Ω)",
-		"5": "DUT5 Resistance (Ω)",
-		"6": "DUT6 Resistance (Ω)",
-		"7": "DUT7 Resistance (Ω)",
-		"8": "DUT8 Resistance (Ω)",
-		"9": "Furnace Temperature (C)"
-		
+		"1": "Temperature (˚C)",
+		"2": "Temperature (˚C)",
+		"3": "Temperature (˚C)",
+		"4": "Temperature (˚C)",
+		"5": "Temperature (˚C)",
+		"6": "Temperature (˚C)",
+		"7": "Resistance (Ω)",
+		"8": "Resistance (Ω)",
+		"9": "Resistance (Ω)",
+		"10": "Resistance (Ω)",
+		"11": "Resistance (Ω)",
+		"12": "Resistance (Ω)",
+		"13": "Resistance (Ω)",
+		"14": "Resistance (Ω)"	
 	},
 
-    	"PLOT_WINDOW_1":{
-           "title": "Test Results",
-           "x_data": [1],
-           "subplot1": [2, 3, 4, 5, 6, 7, 8, 9]
-    	}
+	"PLOT_WINDOW_1":{
+       "title": "Test Results",
+       "x_data": [1],
+       "subplot1": [1, 2, 3, 4, 6],
+       "subplot2": [7, 8, 9, 10]
+	}
 }
